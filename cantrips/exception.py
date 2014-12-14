@@ -9,6 +9,9 @@ class _Exception(Arguments, Exception):
 
 
 def factory(codes, base=_Exception):
+    """
+    Creates a custom exception class with arbitrary error codes and arguments.
+    """
 
     if not issubclass(base, _Exception):
         raise FactoryException("Invalid class passed as parent: Must be a subclass of an Exception class created with this function",
