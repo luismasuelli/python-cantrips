@@ -1,5 +1,5 @@
 # coding=utf-8
-from cantrips.exception import factory
+from .exception import factory
 
 
 class Eventful(object):
