@@ -1,4 +1,7 @@
-class frozendict(dict):
+_dict = dict
+
+
+class frozendict(_dict):
     """
     Implementation stolen from: http://code.activestate.com/recipes/414283/.
     It denies the modification of the current dictionary. I would
@@ -12,11 +15,11 @@ class frozendict(dict):
     pop = popitem = setdefault = update = _blocked_attribute
 
     def __new__(cls, *args, **kwargs):
-        new = dict.__new__(cls)
-        dict.__init__(new, *args, **kwargs)
+        new = _dict.__new__(cls)
+        _dict.__init__(new, *args, **kwargs)
         return new
 
-    def __init__(self, *args):
+    def __init__(self, *args, **kwargs):
         pass
 
     def __hash__(self):
@@ -27,7 +30,7 @@ class frozendict(dict):
             return h
 
     def __repr__(self):
-        return "frozendict(%s)" % dict.__repr__(self)
+        return "frozendict(%s)" % _dict.__repr__(self)
 
 
 list = tuple

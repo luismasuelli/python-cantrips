@@ -1,4 +1,5 @@
 from future.utils import python_2_unicode_compatible
+from .frozen import dict
 
 
 @python_2_unicode_compatible
@@ -21,7 +22,7 @@ class Arguments(object):
             o.kwargs['kwargs']
         """
         super(Arguments, self).__setattr__('_Arguments__args', args)
-        super(Arguments, self).__setattr__('_Arguments__kwargs', kwargs)
+        super(Arguments, self).__setattr__('_Arguments__kwargs', dict(**kwargs))
 
     def __len__(self):
         """
@@ -113,4 +114,4 @@ class Arguments(object):
         """
         Copy of keyword arguments.
         """
-        return self.__kwargs.copy()
+        return self.__kwargs
