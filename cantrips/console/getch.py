@@ -2,7 +2,9 @@ import six
 
 
 class _Getch:
-    """Gets a single character from standard input.  Does not echo to the screen."""
+    """
+    Gets a single character from standard input. Does not echo to the screen.
+    """
     def __init__(self):
         try:
             self.impl = _GetchWindows()
@@ -39,6 +41,10 @@ class _GetchWindows:
 
 getch = _Getch()
 igetch = lambda: getch().lower()
+igetch.__doc__ = """
+Gets a single character from standard input. Does not echo to the screen.
+Converts it to lowercase, so it is not important the actual input case.
+"""
 
 
 def input(message, until, single_char=False, transform=lambda a: a):
