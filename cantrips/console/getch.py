@@ -1,4 +1,4 @@
-import six
+from future.builtins.misc import input as line_input
 
 
 class _Getch:
@@ -58,7 +58,7 @@ def input(message, until, single_char=False, transform=lambda a: a):
         return getch()
 
     while True:
-        text = transform(six.input(message) if not single_char else _getch(message))
+        text = transform(line_input(message) if not single_char else _getch(message))
         if until(text):
             return text
 
