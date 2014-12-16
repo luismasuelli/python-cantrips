@@ -18,8 +18,18 @@ class Message(Packet):
         'INVALID_FORMAT': 7
     })
 
-    def __init__(self, namespace, command, *args, **kwargs):
+    def __init__(self, namespace, command, direction, *args, **kwargs):
         super(Message, self).__init__("%s.%s" % (namespace, command), *args, **kwargs)
+        self.__direction = direction
+
+    @property
+    def direction(self):
+        return self.__direction
+
+    def __setattr__(self, key, value):
+        if key == '_Message__direction':
+            return object.__setattr__(self, key, value)
+        return super(Message, self).__setattr__(key, value)
 
     def serialize(self, expect_clientwise=False):
         parts = {
@@ -51,7 +61,7 @@ class MessageFactory(object):
         self.__direction = direction
 
     def build(self, *args, **kwargs):
-        return Message(self.namespace.code, self.code, *args, **kwargs)
+        return Message(self.namespace.code, self.code, self.direction, *args, **kwargs)
 
     @property
     def code(self):
@@ -89,7 +99,7 @@ class MessageNamespace(object):
                                     Message.Error.FACTORY_ALREADY_EXISTS,
                                     factory_code=code)
         except KeyError:
-            x = MessageFactory(self.code, code, direction)
+            x = MessageFactory(self, code, direction)
             self.__messages[code] = x
             return x
 
@@ -145,14 +155,14 @@ class MessageNamespaceSet(object):
                                 namespace_code=code)
 
     def unserialize(self, obj, expect_serverwise=False):
-        if not isinstance(obj['code'], basestring) or not isinstance(obj['args'], list) or not isinstance(obj['kwargs'], dict):
+        if not isinstance(obj.get('code'), basestring) or not isinstance(obj.get('args'), (tuple, list)) or not isinstance(obj.get('kwargs'), dict):
             raise Message.Error("Expected format message is {code:string, args:list, kwargs:dict}",
                                 Message.Error.INVALID_FORMAT,
                                 parts=obj)
         else:
             code_parts = obj['code'].rsplit(".", 1)
             if len(code_parts) != 2:
-                raise Message.Error("Message code must be in format `namespace.code`. Current: " + obj.code,
+                raise Message.Error("Message code must be in format `namespace.code`. Current: " + obj['code'],
                                     Message.Error.INVALID_FORMAT,
                                     parts=obj)
             else:
