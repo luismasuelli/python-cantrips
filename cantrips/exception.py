@@ -24,6 +24,9 @@ def factory(codes, base=_Exception):
         raise FactoryException("Factory codes must be a dict str -> object",
                                FactoryException.INVALID_CODES_LIST, intended_codes=codes)
 
+    if not isinstance(codes, dict):
+        codes = {v: k for (k, v + 1) in enumerate(codes)}
+
     for code, value in codes.items():
         try:
             setattr(Error, code, value)
