@@ -14,3 +14,14 @@ class Packet(Arguments):
     @property
     def code(self):
         return self.__code
+
+    def __setattr__(self, key, value):
+        if key == '_Packet__code':
+            return object.__setattr__(self, key, value)
+        return super(Packet, self).__setattr__(key, value)
+
+    def __repr__(self):
+        """
+        Code representation.
+        """
+        return "%s(%r,*%r,**%r)" % (type(self).__name__, self.code, self.args, self.kwargs)
