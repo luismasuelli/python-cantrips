@@ -4,8 +4,8 @@ from .arguments import Arguments
 class _Exception(Arguments, Exception):
 
     def __init__(self, message, code, *args, **kwargs):
-        Arguments.__init__(code, *args, **kwargs)
-        Exception.__init__(message)
+        Arguments.__init__(self, code, *args, **kwargs)
+        Exception.__init__(self, message)
 
 
 def factory(codes, base=_Exception):
@@ -25,7 +25,7 @@ def factory(codes, base=_Exception):
                                FactoryException.INVALID_CODES_LIST, intended_codes=codes)
 
     if not isinstance(codes, dict):
-        codes = {v: k for (k, v + 1) in enumerate(codes)}
+        codes = {v: v for v in codes}
 
     for code, value in codes.items():
         try:
