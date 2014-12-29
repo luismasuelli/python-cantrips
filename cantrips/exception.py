@@ -4,7 +4,7 @@ from .arguments import Arguments
 class _Exception(Arguments, Exception):
 
     def __init__(self, message, code, *args, **kwargs):
-        Arguments.__init__(self, code, *args, **kwargs)
+        Arguments.__init__(self, message=message, code=code, *args, **kwargs)
         Exception.__init__(self, message)
 
 
