@@ -219,8 +219,9 @@ class AuditoryFutureLock(AuditoryLock):
         If the future is not set, this call will do nothing.
         """
         if self._future:
-            self._future.set_result(None)
+            future = self._future
             self._future = None
+            future.set_result(None)
         return None
 
     def _clear(self):
@@ -284,8 +285,9 @@ class AuditoryTwistedLock(AuditoryLock):
         If the deferred is not set, this call will do nothing.
         """
         if self._deferred:
-            self._deferred.set_result(None)
+            deferred = self._deferred
             self._deferred = None
+            deferred.callback(None)
         return None
 
     def _clear(self):
