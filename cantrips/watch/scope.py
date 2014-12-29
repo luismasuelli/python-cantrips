@@ -1,8 +1,9 @@
 import sys
 from copy import deepcopy, copy
+
 from .expression import Expression, IdentityExpression
 from .undefined import Undefined
-from ..exception import factory
+from cantrips.types.exception import factory
 
 
 class Scope(object):

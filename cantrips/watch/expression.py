@@ -1,6 +1,7 @@
 import operator
+
 from .undefined import Undefined
-from ..exception import factory
+from cantrips.types.exception import factory
 
 
 class Expression(object):
