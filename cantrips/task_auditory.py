@@ -179,6 +179,8 @@ class AuditoryFutureLock(AuditoryLock):
       their processing to other tasks (`yield lock.checkpoint()` in contrast to just `lock.checkpoint()`).
     Additionally, procedures that yield the checkpoint will become generators and must be yielded from an upper
       generator or Tornado's @corroutine.
+
+    Disclaimer: Cannot state whether any other version of `futures` will work or not.
     """
 
     _FUTURE_CLASS = None
@@ -227,6 +229,71 @@ class AuditoryFutureLock(AuditoryLock):
         """
         if not self._future:
             self._future = self._FUTURE_CLASS()
+        return None
+
+
+class AuditoryTwistedLock(AuditoryLock):
+    """
+    Implements the AudotiryLock using Deferred-oriented checks. Using this class requires
+      the installation of twisted framework (pip install twisted==14.0.2).
+
+    Such lock cannot be used in a multithread architecture since the calls are not blocking at all.
+
+    Note that invoking the `checkpoint()` method in async architectures is not like in sync architectures.
+    You must yield the value instead of returning it, so Deferred-oriented architectures can yield (properly-said)
+      their processing to other tasks (`yield lock.checkpoint()` in contrast to just `lock.checkpoint()`).
+    Additionally, procedures that yield the checkpoint will become generators and must be yielded from an upper
+      generator or Twisted's @inlineCallbacks.
+
+    Disclaimer: Cannot state whether any other version of `twisted` will work or not.
+    """
+
+    _DEFERRED_CLASS = None
+
+    @staticmethod
+    def _deferreds_check():
+        """
+        Checks the presence of the concurrent.futures package.
+        """
+        if not AuditoryTwistedLock._DEFERRED_CLASS:
+            try:
+                from twisted.internet.defer import Deferred
+                AuditoryTwistedLock._DEFERRED_CLASS = Deferred
+            except ImportError:
+                raise AuditoryTwistedLock.Error("You need to install twisted framework for this to work (pip install twisted==14.0.2)",
+                                                AuditoryTwistedLock.Error.UNSATISFIED_IMPORT_REQ)
+
+    def __init__(self, reentrant=False, simultaneous=False):
+        self._deferreds_check()
+        self._deferred = None
+        super(AuditoryTwistedLock, self).__init__(reentrant, simultaneous)
+
+    def _wait(self):
+        """
+        This value will be returned by calling `checkpoint()`. Calls to `checkpoint()` MUST be yielded using
+          this architecture (e.g. in Twisted's @inlineCallbacks). The return value will be either a Deferred (block)
+          or None (don't-block).
+        """
+        return self._deferred
+
+    def _set(self):
+        """
+        This call will set the result of the deferred to None (actually, the result of the deferred doesn't matter).
+        Also, this call will unset the deferred, by assigning None.
+
+        If the deferred is not set, this call will do nothing.
+        """
+        if self._deferred:
+            self._deferred.set_result(None)
+            self._deferred = None
+        return None
+
+    def _clear(self):
+        """
+        This call will create a future if no deferred is set, thus making the `checkpoint()` calls blocking.
+        """
+        if not self._deferred:
+            self._deferred = self._DEFERRED_CLASS()
         return None
 
 
