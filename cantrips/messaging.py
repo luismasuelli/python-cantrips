@@ -1,5 +1,5 @@
-from .exception import factory
-from .arguments import Arguments
+from cantrips.types.exception import factory
+from cantrips.types.arguments import Arguments
 
 
 class Packet(Arguments):

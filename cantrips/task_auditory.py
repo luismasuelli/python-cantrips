@@ -1,6 +1,6 @@
 #-*- coding: utf-8 -*-
 from threading import Thread, Lock, Event
-from .exception import factory
+from cantrips.types.exception import factory
 
 
 class AuditoryLock(object):

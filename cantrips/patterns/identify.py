@@ -1,6 +1,6 @@
-from ..arguments import Arguments
-from ..exception import factory
-from ..events import Eventful
+from cantrips.types.arguments import Arguments
+from cantrips.types.exception import factory
+from cantrips.types.events import Eventful
 
 
 class Identified(Arguments):

@@ -1,4 +1,4 @@
-from .arguments import Arguments
+from cantrips.types.arguments import Arguments
 
 
 class _Exception(Arguments, Exception):

@@ -35,7 +35,6 @@ class _GetchWindows:
         import msvcrt
 
     def __call__(self):
-        import msvcrt
         return msvcrt.getch()
 
 
