@@ -1,6 +1,7 @@
 #-*- coding: utf-8 -*-
 from threading import Thread, Lock, Event
 from cantrips.types.exception import factory
+from .features import ConcurrentFutureFeature, TornadoFutureFeature, TwistedDeferredFeature
 
 
 class AuditoryLock(object):
@@ -184,22 +185,10 @@ class AuditoryFutureLock(AuditoryLock):
     """
 
     _FUTURE_CLASS = None
-
-    @staticmethod
-    def _futures_check():
-        """
-        Checks the presence of the concurrent.futures package.
-        """
-        if not AuditoryFutureLock._FUTURE_CLASS:
-            try:
-                from concurrent.futures import Future
-                AuditoryFutureLock._FUTURE_CLASS = Future
-            except ImportError:
-                raise AuditoryFutureLock.Error("You need to install concurrent.futures for this to work (pip install futures==2.2.0)",
-                                               AuditoryFutureLock.Error.UNSATISFIED_IMPORT_REQ)
+    _FEATURE = ConcurrentFutureFeature
 
     def __init__(self, reentrant=False, simultaneous=False):
-        self._futures_check()
+        self._FUTURE_CLASS = self._FEATURE.import_it()
         self._future = None
         super(AuditoryFutureLock, self).__init__(reentrant, simultaneous)
 
@@ -245,20 +234,9 @@ class AuditoryTornadoLock(AuditoryFutureLock):
     Disclaimer: Cannot state whether this will work, or not, in other versions of tornado.
       However, I suggest limit the usage to versions 4+.
     """
-    _FUTURE_CLASS = None
 
-    @staticmethod
-    def _futures_check():
-        """
-        Checks the presence of the tornado package.
-        """
-        if not AuditoryTornadoLock._FUTURE_CLASS:
-            try:
-                from tornado.concurrent import Future
-                AuditoryTornadoLock._FUTURE_CLASS = Future
-            except ImportError:
-                raise AuditoryTornadoLock.Error("You need to install tornado for this to work (pip install tornado==4.0.2)",
-                                                AuditoryTornadoLock.Error.UNSATISFIED_IMPORT_REQ)
+    _FUTURE_CLASS = None
+    _FEATURE = TornadoFutureFeature
 
 
 class AuditoryTwistedLock(AuditoryLock):
@@ -279,21 +257,8 @@ class AuditoryTwistedLock(AuditoryLock):
 
     _DEFERRED_CLASS = None
 
-    @staticmethod
-    def _deferreds_check():
-        """
-        Checks the presence of the concurrent.futures package.
-        """
-        if not AuditoryTwistedLock._DEFERRED_CLASS:
-            try:
-                from twisted.internet.defer import Deferred
-                AuditoryTwistedLock._DEFERRED_CLASS = Deferred
-            except ImportError:
-                raise AuditoryTwistedLock.Error("You need to install twisted framework for this to work (pip install twisted==14.0.2)",
-                                                AuditoryTwistedLock.Error.UNSATISFIED_IMPORT_REQ)
-
     def __init__(self, reentrant=False, simultaneous=False):
-        self._deferreds_check()
+        self._DEFERRED_CLASS = TwistedDeferredFeature.import_it()
         self._deferred = None
         super(AuditoryTwistedLock, self).__init__(reentrant, simultaneous)
 
