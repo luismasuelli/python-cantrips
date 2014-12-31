@@ -233,6 +233,34 @@ class AuditoryFutureLock(AuditoryLock):
         return None
 
 
+class AuditoryTornadoLock(AuditoryFutureLock):
+    """
+    Implements the AudotiryLock using Tornado's Future-oriented checks. Using this class requires
+      the installation of tornado (pip install tornado==4.0.2).
+
+    The implementation does not change from the one at AuditoryFutureLock. In fact, there's a high
+      chance that you'll never make use one of these two classes since both Future classes are
+      interchangeable in Tornado.
+
+    Disclaimer: Cannot state whether this will work, or not, in other versions of tornado.
+      However, I suggest limit the usage to versions 4+.
+    """
+    _FUTURE_CLASS = None
+
+    @staticmethod
+    def _futures_check():
+        """
+        Checks the presence of the tornado package.
+        """
+        if not AuditoryTornadoLock._FUTURE_CLASS:
+            try:
+                from tornado.concurrent import Future
+                AuditoryTornadoLock._FUTURE_CLASS = Future
+            except ImportError:
+                raise AuditoryTornadoLock.Error("You need to install tornado for this to work (pip install tornado==4.0.2)",
+                                                AuditoryTornadoLock.Error.UNSATISFIED_IMPORT_REQ)
+
+
 class AuditoryTwistedLock(AuditoryLock):
     """
     Implements the AudotiryLock using Deferred-oriented checks. Using this class requires
