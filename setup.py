@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
     name='python-cantrips',
-    version='0.3.6',
+    version='0.3.7',
     packages=['cantrips', 'cantrips.watch', 'cantrips.types', 'cantrips.patterns'],
     url='https://github.com/luismasuelli/python-cantrips',
     license='LGPL',
