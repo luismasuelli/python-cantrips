@@ -4,7 +4,7 @@ except:
     raise ImportError("You need to install tornado for this to work (pip install tornado==4.0.2)")
 import logging
 import json
-from .messaging import MessageNamespaceSet, Message
+from cantrips.protocol.messaging import MessageNamespaceSet, Message
 
 
 logger = logging.getLogger("cantrips.protocol.tornado")
