@@ -181,7 +181,7 @@ class MessageNamespaceSet(object):
                                 namespace_code=code)
 
     def unserialize(self, obj, expect_serverwise=False):
-        if not isinstance(obj.get('code'), basestring) or not isinstance(obj.get('args'), (tuple, list)) or not isinstance(obj.get('kwargs'), dict):
+        if not isinstance(obj, dict) or isinstance(obj.get('code'), basestring) or not isinstance(obj.get('args'), (tuple, list)) or not isinstance(obj.get('kwargs'), dict):
             raise Message.Error("Expected format message is {code:string, args:list, kwargs:dict}",
                                 Message.Error.INVALID_FORMAT,
                                 parts=obj)
