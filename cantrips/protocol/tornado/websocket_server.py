@@ -11,8 +11,20 @@ logger = logging.getLogger("cantrips.protocol.tornado")
 
 
 class WSMessageHandler(WebSocketHandler):
+    """
+    This handler formats the messages using json. Messages
+      must match a certain specification defined in the
+      derivated classes.
+    """
 
     def initialize(self, strict=False):
+        """
+        Initializes the handler by specifying whether the
+          error processing will be automatic (strict=True)
+          or the user will be able to handle the error
+          processing.
+        """
+
         self.strict = strict
         self._setup_ns()
 
@@ -23,22 +35,63 @@ class WSMessageHandler(WebSocketHandler):
 
     @classmethod
     def setup(cls):
+        """
+        Specifies the protocol messages to be delivered and
+          received. This function must return a dictionary
+          with key strings:
+            { "name.space" : { "code": (direction), ... }, ... }
+
+        Where direction may be:
+          MessageFactory.DIRECTION_SERVER : this message can go to the server
+          MessageFactory.DIRECTION_CLIENT : this message can go to the client
+          MessageFactory.DIRECTION_BOTH : this message can go in both directions
+        """
+
         return {}
 
     def packet_send(self, ns, code, *args, **kwargs):
+        """
+        Sends a packet with a namespace, a message code, and arbitrary
+          arguments. Messages must be checked for their direction whether
+          they can be sent to the client.
+        """
+
         self.write_message(json.dumps(self._ns_set.find(ns).find(code).build_message(*args, **kwargs).serialize(True)))
         return True
 
-    def packet_process(self, packet):
-        pass
+    def packet_process(self, message):
+        """
+        Processes a message by running a specific behavior. If
+          this function returns False, the connection is closed.
+        """
+
+        return True
 
     def packet_invalid(self, error):
-        pass
+        """
+        Processes an exception by running certain behavior. It is
+          the same as processing a normal message: If this function
+          returns False, the connection is closed.
+        """
+
+        return False
 
     def packet_hello(self):
+        """
+        Processes an on-connection behavior. It is completely safe to
+          send messages to the other endpoint.
+        """
+
         pass
 
     def packet_goodbye(self):
+        """
+        Processes an on-disconnection behavior. It is completely safe to
+          send messages to the other endpoint, since the closing reason is
+          not the client already closed the connection, but a protocol error
+          or an agreed connection-close command.
+        """
+
         pass
 
     def open(self):
