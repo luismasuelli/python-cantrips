@@ -2,8 +2,8 @@ from distutils.core import setup
 
 setup(
     name='python-cantrips',
-    version='0.3.9',
-    packages=['cantrips', 'cantrips.watch', 'cantrips.types', 'cantrips.patterns'],
+    version='0.4.0',
+    packages=['cantrips', 'cantrips.watch', 'cantrips.types', 'cantrips.patterns', 'cantrips.protocol', 'cantrips.task'],
     url='https://github.com/luismasuelli/python-cantrips',
     license='LGPL',
     author='Luis Masuelli',
