@@ -8,13 +8,8 @@ except:
                       "for this to work. As an alternative, "
                       "you can install both Autobahn and Twisted"
                       "by executing: pip install autobahn[twisted]")
-import logging
-import json
-from cantrips.protocol.messaging import MessageNamespaceSet, MessageProcessor
+from cantrips.protocol.messaging import MessageProcessor
 from future.utils import istext
-
-
-logger = logging.getLogger("cantrips.protocol.autobahn")
 
 
 class MessageProtocol(WebSocketServerProtocol, MessageProcessor):
