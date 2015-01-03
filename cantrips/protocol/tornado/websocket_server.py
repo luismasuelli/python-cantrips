@@ -6,7 +6,7 @@ from cantrips.protocol.messaging import MessageProcessor
 from future.utils import istext
 
 
-class WSMessageHandler(WebSocketHandler, MessageProcessor):
+class MessageHandler(WebSocketHandler, MessageProcessor):
     """
     This handler formats the messages using json. Messages
       must match a certain specification defined in the
