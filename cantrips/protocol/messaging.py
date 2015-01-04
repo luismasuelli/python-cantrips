@@ -244,7 +244,22 @@ class MessageProcessor(object):
     def _conn_send(self, data):
         raise NotImplementedError
 
-    def packet_send(self, ns, code, *args, **kwargs):
+    def terminate(self):
+        """
+        Terminates the connection by starting the goodbye handshake. A connection could
+          be terminated as part of the normal client message processing, or by an external
+          call (e.g. a broadcast or administrative decision).
+        """
+
+        try:
+            self.goodbye()
+        except Message.Error as e:
+            self._close_protocol_violation(e.parts)
+        except Exception as e:
+            self._close_unknown(e)
+        self._conn_close(1000)
+
+    def send_message(self, ns, code, *args, **kwargs):
         """
         Sends a packet with a namespace, a message code, and arbitrary
           arguments. Messages must be checked for their direction whether
@@ -254,7 +269,7 @@ class MessageProcessor(object):
         data = json.dumps(self._ns_set.find(ns).find(code).build_message(*args, **kwargs).serialize(True))
         self._conn_send(data)
 
-    def packet_process(self, message):
+    def process_message(self, message):
         """
         Processes a message by running a specific behavior. If
           this function returns False, the connection is closed.
@@ -262,7 +277,7 @@ class MessageProcessor(object):
 
         return True
 
-    def packet_invalid(self, error):
+    def invalid_message(self, error):
         """
         Processes an exception by running certain behavior. It is
           the same as processing a normal message: If this function
@@ -271,7 +286,7 @@ class MessageProcessor(object):
 
         return False
 
-    def packet_hello(self):
+    def hello(self):
         """
         Processes an on-connection behavior. It is completely safe to
           send messages to the other endpoint.
@@ -279,7 +294,7 @@ class MessageProcessor(object):
 
         pass
 
-    def packet_goodbye(self):
+    def goodbye(self):
         """
         Processes an on-disconnection behavior. It is completely safe to
           send messages to the other endpoint, since the closing reason is
@@ -306,17 +321,11 @@ class MessageProcessor(object):
 
     def _close_unless(self, result):
         if not result:
-            try:
-                self.packet_goodbye()
-            except Message.Error as e:
-                self._close_protocol_violation(e.parts)
-            except Exception as e:
-                self._close_unknown(e)
-            self._conn_close(1000)
+            self.terminate()
 
     def _conn_made(self):
         try:
-            self.packet_hello()
+            self.hello()
         except Message.Error as e:
             self._close_protocol_violation(e.parts)
         except Exception as e:
@@ -324,7 +333,7 @@ class MessageProcessor(object):
 
     def _conn_message(self, data):
         try:
-            self._close_unless(self.packet_process(self._ns_set.unserialize(json.loads(data), True)))
+            self._close_unless(self.process_message(self._ns_set.unserialize(json.loads(data), True)))
         except (ValueError, Message.Error) as error:
             if self.strict:
                 if isinstance(error, Message.Error):
@@ -335,9 +344,9 @@ class MessageProcessor(object):
                 else:
                     self._close_invalid_format(error.value)
             else:
-                self._close_unless(self.packet_invalid(error))
+                self._close_unless(self.invalid_message(error))
         except Exception as error:
             if self.strict:
                 self._close_unknown(error)
             else:
-                self._close_unless(self.packet_invalid(error))
+                self._close_unless(self.invalid_message(error))

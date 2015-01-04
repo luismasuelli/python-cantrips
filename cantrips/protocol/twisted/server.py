@@ -24,7 +24,7 @@ class MessageProtocol(Protocol, MessageProcessor):
 
     def _conn_close(self, code, reason=''):
         self.transport.write(json.dumps({'code': code, 'reason': reason}))
-        self.transport.loseConnection()
+        return self.transport.loseConnection()
 
     def _conn_send(self, data):
         return self.transport.write(data)
