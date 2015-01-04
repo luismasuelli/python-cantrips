@@ -1,6 +1,7 @@
 from cantrips.types.arguments import Arguments
 from cantrips.types.exception import factory
 from cantrips.types.events import Eventful
+from future.utils import PY3
 
 
 class Identified(Arguments):
@@ -103,6 +104,21 @@ class List(object):
         except KeyError:
             raise self.Error("No object with key '%s' exists here",
                              self.Error.KEY_NOT_EXISTS, key=key, instance=identified if by_val else None)
+
+    def items(self):
+        """
+        Gives a list -or iterator, in PY3- of inner items
+        """
+        return self._objects.items()
+
+    if not PY3:
+
+        def iteritems(self):
+            """
+            Gives an interator of inner items. This method is
+              only available in Python 2.x
+            """
+            return self._objects.iteritems()
 
     def __iter__(self):
         """
