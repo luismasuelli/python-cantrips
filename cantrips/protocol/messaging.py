@@ -286,7 +286,7 @@ class MessageProcessor(object):
           this function returns False, the connection is closed.
         """
 
-        h = self._handlers().get(message.code, lambda message: True)
+        h = self._handlers().get(message.code, lambda message: None)
         return h(message)
 
     def invalid_message(self, error):
@@ -296,7 +296,7 @@ class MessageProcessor(object):
           returns False, the connection is closed.
         """
 
-        return False
+        return True
 
     def hello(self):
         """
@@ -331,8 +331,8 @@ class MessageProcessor(object):
         #Cuando se apruebe el draft, 1011 sera para notificar que la peticion no pudo realizarse
         self._conn_close(3011, "Cannot fullfill request: Internal server error")
 
-    def _close_unless(self, result):
-        if not result:
+    def _close_if(self, result):
+        if result:
             self.terminate()
 
     def _conn_made(self):
@@ -345,7 +345,7 @@ class MessageProcessor(object):
 
     def _conn_message(self, data):
         try:
-            self._close_unless(self._dispatch_message(self._ns_set.unserialize(json.loads(data), True)))
+            self._close_if(self._dispatch_message(self._ns_set.unserialize(json.loads(data), True)))
         except (ValueError, Message.Error) as error:
             if self.strict:
                 if isinstance(error, Message.Error):
@@ -356,9 +356,9 @@ class MessageProcessor(object):
                 else:
                     self._close_invalid_format(error.value)
             else:
-                self._close_unless(self.invalid_message(error))
+                self._close_if(self.invalid_message(error))
         except Exception as error:
             if self.strict:
                 self._close_unknown(error)
             else:
-                self._close_unless(self.invalid_message(error))
+                self._close_if(self.invalid_message(error))
