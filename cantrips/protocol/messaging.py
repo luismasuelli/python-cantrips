@@ -269,13 +269,25 @@ class MessageProcessor(object):
         data = json.dumps(self._ns_set.find(ns).find(code).build_message(*args, **kwargs).serialize(True))
         self._conn_send(data)
 
-    def process_message(self, message):
+    def _handlers(self):
+        """
+        A dictionary with the following structure:
+          "namespace.code" => handler.
+
+        Each handler expects exactly one parameter: the message
+          to be processed.
+        """
+
+        return {}
+
+    def _dispatch_message(self, message):
         """
         Processes a message by running a specific behavior. If
           this function returns False, the connection is closed.
         """
 
-        return True
+        h = self._handlers().get(message.code, lambda message: True)
+        return h(message)
 
     def invalid_message(self, error):
         """
@@ -333,7 +345,7 @@ class MessageProcessor(object):
 
     def _conn_message(self, data):
         try:
-            self._close_unless(self.process_message(self._ns_set.unserialize(json.loads(data), True)))
+            self._close_unless(self._dispatch_message(self._ns_set.unserialize(json.loads(data), True)))
         except (ValueError, Message.Error) as error:
             if self.strict:
                 if isinstance(error, Message.Error):
