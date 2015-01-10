@@ -1,7 +1,7 @@
-class Semistatic(object):
+class TrackableRecord(object):
     """
     Can hold a set of changeable attributes. Attributes not
-      initialized beforehand are NOT changeable.
+      initialized beforehand are NOT setable.
     Can also track the changes of the attributes.
     """
 
