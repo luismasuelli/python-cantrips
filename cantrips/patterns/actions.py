@@ -22,19 +22,36 @@ class AccessControlledAction(Action):
       > no?
       >   on_denied
 
-    The three behaviors must be provided by constructor. The first
-      behavior MUST return a boolean value. The other behaviors are
-      not needed to return any special value or required type.
+    This is composed by four behaviors.
+
+    * The first behavior checks whether the call can be performed with the
+      current arguments. It must return a kind of result which must tell,
+      somehow, whether the operation should be accepted or not.
+      Signature: your choice (will be considered as *args, **kwargs) => your choice.
+    * The second behavior takes the result from the first behavior and
+      should analyze it and tell whether such result is an "allowed" or a
+      "denied" result. It is a complement for the first behavior.
+      Signature: (self, result) => your choice.
+      Notes: The returned value should be bool-evaluable.
+    * The third behavior is the implementation of the "accepted" behavior.
+      Signature: (self, result, *args, **kwargs).
+      Notes: The *args are the same *args from the first behavior, except for
+      the first argument, which is the `self` reference.
+    * The fourth behavior is the implementation of the "rejected" behavior.
+      Signature: the same for the accepted behavior.
+      Notes: The same for the accepted behavior.
     """
 
-    def __init__(self, is_allowed=lambda *args, **kwargs: True, on_allowed=lambda *args, **kwargs: True,
-                 on_denied=lambda *args, **kwargs: False):
-        self.is_allowed = is_allowed
+    def __init__(self, check_allowed=lambda *args, **kwargs: True, accepts=lambda obj, result: result,
+                 on_allowed=lambda *args, **kwargs: True, on_denied=lambda *args, **kwargs: False):
+        self.check_allowed = check_allowed
+        self.accepts = accepts
         self.on_allowed = on_allowed
         self.on_denied = on_denied
 
     def __call__(self, *args, **kwargs):
-        if self.is_allowed(*args, **kwargs):
-            return self.on_allowed(*args, **kwargs)
+        result = self.check_allowed(*args, **kwargs)
+        if self.accepts(args[0], result):
+            return self.on_allowed(args[0], result, *args[1:], **kwargs)
         else:
-            return self.on_denied(*args, **kwargs)
+            return self.on_denied(args[0], result, *args[1:], **kwargs)
