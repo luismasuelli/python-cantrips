@@ -43,7 +43,7 @@ class AccessControlledAction(Action):
     """
 
     def __init__(self, check_allowed=lambda obj, *args, **kwargs: True, accepts=lambda obj, result: result,
-                 on_allowed=lambda obj, *args, **kwargs: True, on_denied=lambda obj, *args, **kwargs: False):
+                 on_allowed=lambda obj, result, *args, **kwargs: True, on_denied=lambda obj, result, *args, **kwargs: False):
         self.check_allowed = check_allowed
         self.accepts = accepts
         self.on_allowed = on_allowed
