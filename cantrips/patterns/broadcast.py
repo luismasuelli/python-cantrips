@@ -46,7 +46,7 @@ class IBroadcast(INotifier, IRegistrar):
     Offers behavior to notify each user.
     """
 
-    BROADCAST_FILTER_ALL = lambda user, command, *args, **kwargs: None
+    BROADCAST_FILTER_ALL = lambda user, command, *args, **kwargs: True
 
     def broadcast(self, command, *args, **kwargs):
         """
