@@ -1,39 +1,58 @@
-class IEmitter(object):
+from cantrips.iteration import items
+
+
+class INotifier(object):
     """
-    This interface takes the task of sending notifications to all
-      of its subscribers. This is done by calling notify() on each
-      of the -subscribed- ISubscriber instances.
+    Offers behavior to notify a user.
     """
 
-    def subscribers(self):
+    def notify(self, user, command, *args, **kwargs):
         """
-        Returns a dict-iterator for the current broadcast's subscribers.
-        This dict-iterator is an `iteritems`-like iterator.
+        Notifies a user with a specified command/data.
         """
+
         raise NotImplementedError
 
-    def notify(self, code, condition=lambda key, value: True, *args, **kwargs):
-        """
-        For each subscriber, notifies it with the current arguments.
-        Passes code, *args, **kwargs to the per-user notification.
-        Uses `condition` as a predicate to be evaluated on each user.
-        Users for which the predicate returns a False-like value
-          are not notified.
-        """
-        for k, v in self.subscribers():
-            if condition(k, v):
-                v.notify(code, *args, **kwargs)
 
-
-class ISubscriber(object):
+class IRegistrar(object):
     """
-    This interface provides the .notify() method which will be used by
-    the IEmitter interface.
+    Offers behavior to register and unregister users.
     """
 
-    def notify(self, code, *args, **kwargs):
+    def register(self, user, *args, **kwargs):
         """
-        This method should notify the instance by passing adequate arguments.
-        Implementation is completely up-to-the-user.
+        Registers a user.
         """
+
         raise NotImplementedError
+
+    def unregister(self, user, *args, **kwargs):
+        """
+        Unregisters a user.
+        """
+
+        raise NotImplementedError
+
+    def users(self):
+        """
+        Gets the list of users.
+        """
+
+        raise NotImplementedError
+
+
+class IBroadcast(INotifier, IRegistrar):
+    """
+    Offers behavior to notify each user.
+    """
+
+    BROADCAST_FILTER_ALL = lambda user, command, *args, **kwargs: None
+
+    def broadcast(self, command, *args, **kwargs):
+        """
+        Notifies each user with a specified command.
+        """
+        criterion = kwargs.pop('criterion', self.BROADCAST_FILTER_ALL)
+        for index, user in items(self.users()):
+            if criterion(user, command, *args, **kwargs):
+                self.notify(user, command, *args, **kwargs)
