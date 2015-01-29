@@ -127,6 +127,13 @@ class List(object):
 
         return iter(self._objects)
 
+    def __len__(self):
+        """
+        length of the list, in items.
+        """
+
+        return len(self._objects)
+
     def __getitem__(self, item):
         """
         Returns a registered item by key.
