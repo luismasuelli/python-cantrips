@@ -136,10 +136,16 @@ class List(object):
 
     def __getitem__(self, item):
         """
-        Returns a registered item by key.
+        Returns a registered item by key (or the item itself, if it is an existent instance).
         """
 
-        return self._objects[item]
+        if isinstance(item, Identified):
+            obj = self._objects[item.key]
+            if obj is not item:
+                raise KeyError(item)
+            return obj
+        else:
+            return self._objects[item]
 
     def __contains__(self, item):
         """
@@ -149,6 +155,6 @@ class List(object):
         if isinstance(item, Identified):
             if not isinstance(item, self._class):
                 return False
-            return item.key in self._objects
+            return item.key in self._objects and self._objects[item.key] is item
         else:
             return item in self._objects
