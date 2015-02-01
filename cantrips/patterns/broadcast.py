@@ -46,11 +46,18 @@ class IBroadcast(INotifier, IRegistrar):
     Offers behavior to notify each user.
     """
 
-    BROADCAST_FILTER_ALL = lambda user, command, *args, **kwargs: True
+    @staticmethod
+    def BROADCAST_FILTER_ALL(user, command, *args, **kwargs):
+        """
+        FIRST-ORDER (pass it as IBroadcast.BROADCAST_FILTER_ALL)
+        Criteria to broadcast to every user
+        """
+        return True
 
     @staticmethod
-    def BROADCAST_FILTER_OTHERS(self, user):
+    def BROADCAST_FILTER_OTHERS(user):
         """
+        HIGH-ORDER (pass it as IBroadcast.BROADCAST_FILTER_OTHERS(user-or-sequence))
         Criteria to broadcast to every user but the current(s).
         """
         if not isinstance(user, (set,frozenset,list,tuple)):
