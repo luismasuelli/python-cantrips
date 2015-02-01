@@ -48,6 +48,15 @@ class IBroadcast(INotifier, IRegistrar):
 
     BROADCAST_FILTER_ALL = lambda user, command, *args, **kwargs: True
 
+    @staticmethod
+    def BROADCAST_FILTER_OTHERS(self, user):
+        """
+        Criteria to broadcast to every user but the current(s).
+        """
+        if not isinstance(user, (set,frozenset,list,tuple)):
+            user = (user,)
+        return lambda u, command, *args, **kwargs: u not in user
+
     def broadcast(self, command, *args, **kwargs):
         """
         Notifies each user with a specified command.
