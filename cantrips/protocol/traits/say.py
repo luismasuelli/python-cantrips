@@ -4,6 +4,10 @@ from cantrips.protocol.traits.permcheck import PermCheck
 
 
 class SayBroadcast(IBroadcast, PermCheck):
+    """
+    This trait, applied to an existent broadcast, lets users
+      to publish messages to the whole broadcast.
+    """
 
     SAY_NS = 'say'
     SAY_CODE_SAID = 'said'
