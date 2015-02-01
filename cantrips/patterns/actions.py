@@ -9,8 +9,15 @@ class Action(object):
     def __call__(self, obj, *args, **kwargs):
         raise NotImplementedError
 
-    def as_method(self):
-        return lambda obj, *args, **kwargs: self(obj, *args, **kwargs)
+    def as_method(self, docstring=""):
+        """
+        Converts this action to a function or method.
+          An optional docstring may be passed.
+        """
+        method = lambda obj, *args, **kwargs: self(obj, *args, **kwargs)
+        if docstring:
+            method.__doc__ = docstring
+        return method
 
 
 class AccessControlledAction(Action):
