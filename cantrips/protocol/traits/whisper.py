@@ -21,10 +21,10 @@ class WhisperBroadcast(IBroadcast, PermCheck):
     WHISPER_RESULT_ALLOW = 'ok'
 
     whisper = AccessControlledAction(
-        lambda obj, user, message: obj._whisper_command_is_allowed(user, message),
+        lambda obj, user, target, message: obj._whisper_command_is_allowed(user, target, message),
         lambda obj, result: obj._accepts(result),
-        lambda obj, result, user, message: obj._whisper_command_on_accepted(result, user, message),
-        lambda obj, result, user, message: obj._whisper_command_on_rejected(result, user, message),
+        lambda obj, result, user, target, message: obj._whisper_command_on_accepted(result, user, target, message),
+        lambda obj, result, user, target, message: obj._whisper_command_on_rejected(result, user, target, message),
     ).as_method("""
     A user (given by key or instance) can send a message to another user in the broadcast.
     This is restricted to users already subscribed to the broadcast (both must belong).
