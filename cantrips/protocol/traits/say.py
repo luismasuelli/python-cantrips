@@ -40,16 +40,16 @@ class SayBroadcast(IBroadcast, PermCheck):
             return self._result_deny(self.SAY_RESULT_DENY_NOT_IN)
         return self._result_allow(self.SAY_RESULT_ALLOW)
 
-    def _say_command_on_accepted(self, result, publisher, message):
+    def _say_command_on_accepted(self, result, user, message):
         """
         User message was accepted. Notify the user AND broadcast the message to other users.
         """
-        self.notify(publisher, (self.SAY_RESPONSE_NS, self.SAY_RESPONSE_CODE_RESPONSE), result=result, message=message)
-        others = IBroadcast.BROADCAST_FILTER_OTHERS(self.users()[publisher])
-        self.broadcast((self.SAY_NS, self.SAY_CODE_SAID), user=publisher, message=message, filter=others)
+        self.notify(user, (self.SAY_RESPONSE_NS, self.SAY_RESPONSE_CODE_RESPONSE), result=result, message=message)
+        others = IBroadcast.BROADCAST_FILTER_OTHERS(self.users()[user])
+        self.broadcast((self.SAY_NS, self.SAY_CODE_SAID), user=user, message=message, filter=others)
 
-    def _say_command_on_rejected(self, result, publisher, message):
+    def _say_command_on_rejected(self, result, user, message):
         """
         User message was rejected.
         """
-        self.notify(publisher, (self.SAY_RESPONSE_NS, self.SAY_RESPONSE_CODE_RESPONSE), result=result, message=message)
+        self.notify(user, (self.SAY_RESPONSE_NS, self.SAY_RESPONSE_CODE_RESPONSE), result=result, message=message)
