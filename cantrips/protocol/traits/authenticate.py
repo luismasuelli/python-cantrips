@@ -21,6 +21,7 @@ class Authenticate(PermCheck):
 
     AUTHENTICATE_RESULT_DENY_NO_ACTIVE_SESSION = 'no-active-session'
     AUTHENTICATE_RESULT_DENY_ALREADY_ACTIVE_SESSION = 'already-active-session'
+    AUTHENTICATE_RESULT_DENY_INVALID = 'invalid-login'
     AUTHENTICATE_RESULT_ALLOW_LOGGED_IN = 'logged-in'
     AUTHENTICATE_RESULT_ALLOW_LOGGED_OUT = 'logged-out'
 
@@ -95,7 +96,7 @@ class Authenticate(PermCheck):
         if user and user in self._broadcast.users():
             return self._result_deny(self.AUTHENTICATE_RESULT_DENY_ALREADY_ACTIVE_SESSION)
         else:
-            return self._login(socket, *args, **kwargs)
+            return self._login(socket, *args, **kwargs) or self._result_deny(self.AUTHENTICATE_RESULT_DENY_INVALID)
 
     def _login_command_on_accepted(self, result, socket, *args, **kwargs):
         """
