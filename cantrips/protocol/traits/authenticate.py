@@ -44,9 +44,18 @@ class Authenticate(PermCheck):
 
     def force_logout(self, user, *args, **kwargs):
         """
-        Logs a user out, by key.
+        Logs a user out, by key. The user will be notified. Since this
+          command is not executed by the client, it must return a boolean
+          value indicating whether the user was logged in or not.
         """
-        #TODO
+        if user in self._broadcast.users():
+            user = self._broadcast.users()[user]
+            self._broadcast.unregister(user, *args, **kwargs)
+            del user.socket.user_endpoint
+            user.socket.send_message(self.AUTHENTICATE_NS, self.AUTHENTICATE_CODE_FORCED_LOGOUT, *args, **kwargs)
+            return True
+        else:
+            return False
 
     def __init__(self):
         """
