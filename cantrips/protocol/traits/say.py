@@ -1,9 +1,10 @@
 from cantrips.patterns.actions import AccessControlledAction
 from cantrips.patterns.broadcast import IBroadcast
 from cantrips.protocol.traits.permcheck import PermCheck
+from cantrips.protocol.traits.provider import IProtocolProvider
 
 
-class SayBroadcast(IBroadcast, PermCheck):
+class SayBroadcast(IBroadcast, PermCheck, IProtocolProvider):
     """
     This trait, applied to an existent broadcast, lets users
       to publish messages to the whole broadcast.
@@ -17,6 +18,17 @@ class SayBroadcast(IBroadcast, PermCheck):
 
     SAY_RESULT_DENY_NOT_IN = 'not-in'
     SAY_RESULT_ALLOW = 'ok'
+
+    @classmethod
+    def specification(cls):
+        return {
+            cls.SAY_NS: {
+                cls.SAY_CODE_SAID: 'client'
+            },
+            cls.SAY_RESPONSE_NS: {
+                cls.SAY_RESPONSE_CODE_RESPONSE: 'client'
+            }
+        }
 
     say = AccessControlledAction(
         lambda obj, user, message: obj._say_command_is_allowed(user, message),

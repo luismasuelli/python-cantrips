@@ -1,8 +1,9 @@
 from cantrips.patterns.actions import AccessControlledAction
 from cantrips.protocol.traits.permcheck import PermCheck
+from cantrips.protocol.traits.provider import IProtocolProvider
 
 
-class Authenticate(PermCheck):
+class Authenticate(PermCheck, IProtocolProvider):
     """
     This authenticator will be in front of a master IBroadcast.
     It will be the one with the power to:
@@ -24,6 +25,17 @@ class Authenticate(PermCheck):
     AUTHENTICATE_RESULT_DENY_INVALID = 'invalid-login'
     AUTHENTICATE_RESULT_ALLOW_LOGGED_IN = 'logged-in'
     AUTHENTICATE_RESULT_ALLOW_LOGGED_OUT = 'logged-out'
+
+    @classmethod
+    def specification(cls):
+        return {
+            cls.AUTHENTICATE_NS: {
+                cls.AUTHENTICATE_CODE_FORCED_LOGOUT: 'client'
+            },
+            cls.AUTHENTICATE_RESPONSE_NS: {
+                cls.AUTHENTICATE_RESPONSE_CODE_RESPONSE: 'client'
+            }
+        }
 
     login = AccessControlledAction(
         lambda obj, socket, *args, **kwargs: obj._login_command_is_allowed(socket, *args, **kwargs),

@@ -1,9 +1,10 @@
 from cantrips.patterns.actions import AccessControlledAction
 from cantrips.patterns.broadcast import IBroadcast
 from cantrips.protocol.traits.permcheck import PermCheck
+from cantrips.protocol.traits.provider import IProtocolProvider
 
 
-class WhisperBroadcast(IBroadcast, PermCheck):
+class WhisperBroadcast(IBroadcast, PermCheck, IProtocolProvider):
     """
     This traits, applied to an existent broadcast, lets a
       user send a private message to another user. Both
@@ -11,7 +12,7 @@ class WhisperBroadcast(IBroadcast, PermCheck):
     """
 
     WHISPER_NS = 'whisper'
-    WHISPER_CODE_SAID = 'whispered'
+    WHISPER_CODE_WHISPERED = 'whispered'
 
     WHISPER_RESPONSE_NS = 'notify'
     WHISPER_RESPONSE_CODE_RESPONSE = 'response'
@@ -19,6 +20,17 @@ class WhisperBroadcast(IBroadcast, PermCheck):
     WHISPER_RESULT_DENY_NOT_IN = 'not-in'
     WHISPER_RESULT_DENY_TARGET_NOT_IN = 'target-not-in'
     WHISPER_RESULT_ALLOW = 'ok'
+
+    @classmethod
+    def specification(cls):
+        return {
+            cls.WHISPER_NS: {
+                cls.WHISPER_CODE_WHISPERED: 'client'
+            },
+            cls.WHISPER_RESPONSE_NS: {
+                cls.WHISPER_RESPONSE_CODE_RESPONSE: 'client'
+            }
+        }
 
     whisper = AccessControlledAction(
         lambda obj, user, target, message: obj._whisper_command_is_allowed(user, target, message),
@@ -52,7 +64,7 @@ class WhisperBroadcast(IBroadcast, PermCheck):
         User message was accepted. Notify the user AND broadcast the message to other users.
         """
         self.notify(user, (self.WHISPER_RESPONSE_NS, self.WHISPER_RESPONSE_CODE_RESPONSE), result=result, target=target, message=message)
-        self.notify(target, (self.WHISPER_NS, self.WHISPER_CODE_SAID), sender=user, message=message)
+        self.notify(target, (self.WHISPER_NS, self.WHISPER_CODE_WHISPERED), sender=user, message=message)
 
     def _whisper_command_on_rejected(self, result, user, target, message):
         """
