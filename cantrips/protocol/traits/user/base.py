@@ -58,8 +58,8 @@ class UserBroadcast(Identified, IBroadcast):
         """
         return cls.endpoint_list_class()()
 
-    def __init__(self, key, master=True):
-        super(UserBroadcast, self).__init__(key, master=master, list=self._endpoint_list())
+    def __init__(self, key, *args, **kwargs):
+        super(UserBroadcast, self).__init__(key, list=self._endpoint_list(), *args, **kwargs)
         self.list.events.insert.register(self._on_register)
         self.list.events.remove.register(self._on_unregister)
 
@@ -87,7 +87,7 @@ class UserBroadcast(Identified, IBroadcast):
         Inserts a user instance (arguments are ignored) on non-master lists.
         Creates a user (arguments are considered) on master lists.
         """
-        return self.list.create(user, *args, **kwargs) if self.master else self.list.insert(user)
+        raise NotImplementedError
 
     def unregister(self, user, *args, **kwargs):
         """
