@@ -1,3 +1,4 @@
+from cantrips.protocol.traits.permcheck import PermCheck
 from cantrips.patterns.broadcast import IBroadcast
 from cantrips.patterns.identify import Identified, List
 
@@ -32,7 +33,7 @@ class UserEndpointList(List):
         super(UserEndpointList, self).__init__(self.endpoint_class())
 
 
-class UserBroadcast(Identified, IBroadcast):
+class UserBroadcast(Identified, IBroadcast, PermCheck):
     """
     Broadcast implementation for such endpoint list. Implements registration
       by using an endpoint list (the endpoint list may be custom-instantiated
