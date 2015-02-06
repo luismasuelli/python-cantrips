@@ -27,12 +27,15 @@ class UserMasterBroadcast(UserBroadcast, IProtocolProvider):
     CHANNEL_NS = 'channel'
     CHANNEL_CODE_CREATE = 'create'
     CHANNEL_CODE_CLOSE = 'close'
+    CHANNEL_CODE_JOIN = 'join'
+    CHANNEL_CODE_PART = 'part'
 
     CHANNEL_RESPONSE_NS = 'notify'
     CHANNEL_RESPONSE_CODE_RESPONSE = 'response'
 
     CHANNEL_RESULT_DENY_CREATE = 'cannot-create-channel'
     CHANNEL_RESULT_DENY_CLOSE = 'cannot-close-channel'
+    CHANNEL_RESULT_DENY_UNEXISTENT = 'unexistent-channel'
 
     @classmethod
     def specification(cls):
