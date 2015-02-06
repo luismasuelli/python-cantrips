@@ -45,23 +45,14 @@ class UserBroadcast(Identified, IBroadcast):
     """
 
     @classmethod
-    def endpoint_list_class(cls):
+    def endpoint_list(cls):
         """
         Class to be used as endpoint list class.
         """
-        return UserEndpointList
-
-    @classmethod
-    def _endpoint_list(cls):
-        """
-        Instantiates an endpoint list.
-        """
-        return cls.endpoint_list_class()()
+        return UserEndpointList()
 
     def __init__(self, key, *args, **kwargs):
-        super(UserBroadcast, self).__init__(key, list=self._endpoint_list(), *args, **kwargs)
-        self.list.events.insert.register(self._on_register)
-        self.list.events.remove.register(self._on_unregister)
+        super(UserBroadcast, self).__init__(key, list=self.endpoint_list(), *args, **kwargs)
 
     def users(self):
         """
@@ -69,27 +60,14 @@ class UserBroadcast(Identified, IBroadcast):
         """
         return self.list
 
-    def _on_register(self, list, instance):
-        """
-        A user was inserted (or created). `instance` is passed by keyword - `instance.key`
-          is the user id.
-        """
-        pass
-
-    def _on_unregister(self, list, instance, by_val):
-        """
-        A user was removed. `instance` is passed by keyword - `instance.key` is the user id.
-        """
-        pass
-
-    def register(self, user, *args, **kwargs):
+    def do_register(self, user, *args, **kwargs):
         """
         Inserts a user instance (arguments are ignored) on non-master lists.
         Creates a user (arguments are considered) on master lists.
         """
         raise NotImplementedError
 
-    def unregister(self, user, *args, **kwargs):
+    def do_unregister(self, user, *args, **kwargs):
         """
         Removes (unregisters) a user (it may be either key or instance).
           More args may be supplied for overriding implementations.
