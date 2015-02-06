@@ -60,14 +60,14 @@ class UserBroadcast(Identified, IBroadcast):
         """
         return self.list
 
-    def do_register(self, user, *args, **kwargs):
+    def register(self, user, *args, **kwargs):
         """
         Inserts a user instance (arguments are ignored) on non-master lists.
         Creates a user (arguments are considered) on master lists.
         """
         raise NotImplementedError
 
-    def do_unregister(self, user, *args, **kwargs):
+    def unregister(self, user, *args, **kwargs):
         """
         Removes (unregisters) a user (it may be either key or instance).
           More args may be supplied for overriding implementations.
