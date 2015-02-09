@@ -1,6 +1,9 @@
+from functools import wraps
+
+
 class IAuthCheck(object):
 
-    def _check_logged_state(self, socket, state=True):
+    def auth_check(self, socket, state=True):
         """
         Checks whether the user is in the specified log state.
         This means:
@@ -17,8 +20,9 @@ class IAuthCheck(object):
         Wraps a method by ensuring that sockets (first argument)
           are logged in.
         """
+        @wraps(f)
         def wrapped(self, socket, *args, **kwargs):
-            if self._check_logged_state(socket, True):
+            if self.auth_check(socket, True):
                 f(self, socket, *args, **kwargs)
         return wrapped
 
@@ -28,7 +32,8 @@ class IAuthCheck(object):
         Wraps a method by ensuring that sockets (first argument)
           are not logged in.
         """
+        @wraps(f)
         def wrapped(self, socket, *args, **kwargs):
-            if self._check_logged_state(socket, False):
+            if self.auth_check(socket, False):
                 f(self, socket, *args, **kwargs)
             return wrapped
