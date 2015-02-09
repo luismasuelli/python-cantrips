@@ -37,6 +37,7 @@ class UserMasterBroadcast(UserBroadcast, IProtocolProvider, IAuthCheck):
     CHANNEL_RESULT_DENY_CREATE = 'cannot-create-channel'
     CHANNEL_RESULT_DENY_CLOSE = 'cannot-close-channel'
     CHANNEL_RESULT_DENY_UNEXISTENT = 'unexistent-channel'
+    CHANNEL_RESULT_DENY_EXISTENT = 'already-existent'
 
     @classmethod
     def specification(cls):
@@ -62,12 +63,11 @@ class UserMasterBroadcast(UserBroadcast, IProtocolProvider, IAuthCheck):
 
         def unregister_slave(list, instance, by_val):
             for ukey, user in instance.users():
-                instance.force_part(user, special="slave-unregister", *args, **kwargs)
+                instance.force_part(user, special="slave-unregister")
 
         def unregister_user(list, instance, by_val):
-            for skey, slave in items(self.slaves):
-                slave.force_part(instance, special="user-unregister", *args, **kwargs)
-            del instance.socket.user_endpoint
+            for skey, slave in items(instance.slaves):
+                slave.force_part(instance, special="user-unregister")
 
         self.slaves.events.remove.register(unregister_slave)
         self.list.events.remove.register(unregister_user)
