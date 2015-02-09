@@ -72,6 +72,10 @@ class UserMasterBroadcast(UserBroadcast, IProtocolProvider, IAuthCheck):
         self.slaves.events.remove.register(unregister_slave)
         self.list.events.remove.register(unregister_user)
 
+    #######################
+    # Funciones utilitarias
+    #######################
+
     def register(self, user, *args, **kwargs):
         """
         Creates a user (arguments are considered) on master lists.
@@ -120,6 +124,27 @@ class UserMasterBroadcast(UserBroadcast, IProtocolProvider, IAuthCheck):
         """
         del socket.end_point
 
+    ############################
+    # Funciones semi-utilitarias
+    ############################
+
+    def force_logout(self, user, *args, **kwargs):
+        """
+        Logs a user out, by key. The user will be notified. Since this
+          command is not executed by the client, it must return a boolean
+          value indicating whether the user was logged in or not.
+        """
+        if user in self.users():
+            self.unregister(self.users()[user], *args, **kwargs)
+            user.socket.send_message(self.AUTHENTICATE_NS, self.AUTHENTICATE_CODE_FORCED_LOGOUT, *args, **kwargs)
+            return True
+        else:
+            return False
+
+    ################################################
+    # Funciones de comando (emitidos por el usuario)
+    ################################################
+
     command_login = IAuthCheck.logout_required(AccessControlledAction(
         lambda obj, socket, *args, **kwargs: obj._command_is_allowed_login(socket, *args, **kwargs),
         lambda obj, result: obj._accepts(result),
@@ -155,19 +180,6 @@ class UserMasterBroadcast(UserBroadcast, IProtocolProvider, IAuthCheck):
     ).as_method("""
     Allows users to close/destroy broadcasts.
     """))
-
-    def force_logout(self, user, *args, **kwargs):
-        """
-        Logs a user out, by key. The user will be notified. Since this
-          command is not executed by the client, it must return a boolean
-          value indicating whether the user was logged in or not.
-        """
-        if user in self.users():
-            self.unregister(self.users()[user], *args, **kwargs)
-            user.socket.send_message(self.AUTHENTICATE_NS, self.AUTHENTICATE_CODE_FORCED_LOGOUT, *args, **kwargs)
-            return True
-        else:
-            return False
 
     def _impl_login(self, socket, *args, **kwargs):
         """
@@ -253,3 +265,16 @@ class UserMasterBroadcast(UserBroadcast, IProtocolProvider, IAuthCheck):
         Rejects the logout command, and cleans the user_endpoint (perhaps an expired session exists).
         """
         socket.send_message(self.AUTHENTICATE_RESPONSE_NS, self.AUTHENTICATE_RESPONSE_CODE_RESPONSE, result=result)
+
+    #################################################################
+    # Funciones auxiliares de comando (no lo resuelven por si mismas)
+    #################################################################
+
+    def forward(self, socket, channel, command, *args, **kwargs):
+        """
+        Forwards a command to the requested channel.
+        """
+        if channel in self.slaves:
+            getattr(self.slaves[channel], command)(socket, *args, **kwargs)
+        else:
+            socket.send_message(self.CHANNEL_RESPONSE_NS, self.CHANNEL_RESPONSE_CODE_RESPONSE, self._result_deny(self.CHANNEL_RESULT_DENY_UNEXISTENT))
