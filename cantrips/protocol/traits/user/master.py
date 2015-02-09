@@ -66,7 +66,7 @@ class UserMasterBroadcast(UserBroadcast, IProtocolProvider, IAuthCheck):
                 instance.force_part(user, special="slave-unregister")
 
         def unregister_user(list, instance, by_val):
-            for skey, slave in items(instance.slaves):
+            for skey, slave in items(instance.slaves()):
                 slave.force_part(instance, special="user-unregister")
 
         self.slaves.events.remove.register(unregister_slave)

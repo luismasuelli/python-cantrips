@@ -15,6 +15,12 @@ class UserEndpoint(Identified):
     def notify(self, ns, code, *args, **kwargs):
         return self.socket.send_message(ns, code, *args, **kwargs)
 
+    def slaves(self):
+        """
+        List of slaves the user is connected to.
+        """
+        raise NotImplementedError
+
 
 class UserEndpointList(List):
     """
