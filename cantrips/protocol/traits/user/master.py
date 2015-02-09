@@ -139,19 +139,19 @@ class UserMasterBroadcast(UserBroadcast, IProtocolProvider, IAuthCheck):
     """))
 
     command_create_slave = IAuthCheck.login_required(AccessControlledAction(
-        lambda obj, user, slave_name, *args, **kwargs: obj._command_is_allowed_create_slave(user, slave_name, *args, **kwargs),
+        lambda obj, socket, slave_name, *args, **kwargs: obj._command_is_allowed_create_slave(socket, slave_name, *args, **kwargs),
         lambda obj, result: obj.accepts(result),
-        lambda obj, result, user, slave_name, *args, **kwargs: obj._command_accepted_create_slave(result, user, slave_name, *args, **kwargs),
-        lambda obj, result, user, slave_name, *args, **kwargs: obj._command_rejected_create_slave(result, user, slave_name, *args, **kwargs)
+        lambda obj, result, socket, slave_name, *args, **kwargs: obj._command_accepted_create_slave(result, socket, slave_name, *args, **kwargs),
+        lambda obj, result, socket, slave_name, *args, **kwargs: obj._command_rejected_create_slave(result, socket, slave_name, *args, **kwargs)
     ).as_method("""
     Allows users to create slave broadcasts.
     """))
 
     command_close_slave = IAuthCheck.login_required(AccessControlledAction(
-        lambda obj, user, slave_name, *args, **kwargs: obj._command_is_allowed_close_slave(user, slave_name, *args, **kwargs),
+        lambda obj, socket, slave_name, *args, **kwargs: obj._command_is_allowed_close_slave(socket, slave_name, *args, **kwargs),
         lambda obj, result: obj.accepts(result),
-        lambda obj, result, user, slave_name, *args, **kwargs: obj._command_accepted_close_slave(result, user, slave_name, *args, **kwargs),
-        lambda obj, result, user, slave_name, *args, **kwargs: obj._command_rejected_close_slave(result, user, slave_name, *args, **kwargs)
+        lambda obj, result, socket, slave_name, *args, **kwargs: obj._command_accepted_close_slave(result, socket, slave_name, *args, **kwargs),
+        lambda obj, result, socket, slave_name, *args, **kwargs: obj._command_rejected_close_slave(result, socket, slave_name, *args, **kwargs)
     ).as_method("""
     Allows users to close/destroy broadcasts.
     """))
@@ -176,43 +176,43 @@ class UserMasterBroadcast(UserBroadcast, IProtocolProvider, IAuthCheck):
         """
         raise NotImplementedError
 
-    def _command_is_allowed_create_slave(self, user, slave_name, *args, **kwargs):
+    def _command_is_allowed_create_slave(self, socket, slave_name, *args, **kwargs):
         """
         States whether the user is allowed to create the slave.
         """
         return self._result_deny(self.CHANNEL_RESULT_DENY_CREATE)
 
-    def _command_accepted_create_slave(self, result, user, slave_name, *args, **kwargs):
+    def _command_accepted_create_slave(self, result, socket, slave_name, *args, **kwargs):
         """
         Handles when the slave creation succeeds.
         """
-        self.notify(user, (self.CHANNEL_RESPONSE_NS, self.CHANNEL_RESPONSE_CODE_RESPONSE), result=result, channel=slave_name)
         self.slave_register(slave_name, *args, **kwargs)
+        socket.send_message(self.CHANNEL_RESPONSE_NS, self.CHANNEL_RESPONSE_CODE_RESPONSE, result=result, channel=slave_name)
 
-    def _command_rejected_create_slave(self, result, user, slave_name, *args, **kwargs):
+    def _command_rejected_create_slave(self, result, socket, slave_name, *args, **kwargs):
         """
         Handles when the slave creation fails.
         """
-        self.notify(user, (self.CHANNEL_RESPONSE_NS, self.CHANNEL_RESPONSE_CODE_RESPONSE), result=result, channel=slave_name)
+        socket.send_message(self.CHANNEL_RESPONSE_NS, self.CHANNEL_RESPONSE_CODE_RESPONSE, result=result, channel=slave_name)
 
-    def _command_is_allowed_close_slave(self, user, slave_name, *args, **kwargs):
+    def _command_is_allowed_close_slave(self, socket, slave_name, *args, **kwargs):
         """
         States whether the user is allowed to close the slave.
         """
         return self._result_deny(self.CHANNEL_RESULT_DENY_CLOSE)
 
-    def _command_accepted_close_slave(self, result, user, slave_name, *args, **kwargs):
+    def _command_accepted_close_slave(self, result, socket, slave_name, *args, **kwargs):
         """
         Handles when the slave closure succeeds.
         """
-        self.notify(user, (self.CHANNEL_RESPONSE_NS, self.CHANNEL_RESPONSE_CODE_RESPONSE), result=result, channel=slave_name)
         self.slave_unregister(slave_name, *args, **kwargs)
+        socket.send_message(self.CHANNEL_RESPONSE_NS, self.CHANNEL_RESPONSE_CODE_RESPONSE, result=result, channel=slave_name)
 
-    def _command_rejected_close_slave(self, result, user, slave_name, *args, **kwargs):
+    def _command_rejected_close_slave(self, result, socket, slave_name, *args, **kwargs):
         """
         Handles when the slave closure fails.
         """
-        self.notify(user, (self.CHANNEL_RESPONSE_NS, self.CHANNEL_RESPONSE_CODE_RESPONSE), result=result, channel=slave_name)
+        socket.send_message(self.CHANNEL_RESPONSE_NS, self.CHANNEL_RESPONSE_CODE_RESPONSE, result=result, channel=slave_name)
 
     def _command_is_allowed_login(self, socket, *args, **kwargs):
         """
