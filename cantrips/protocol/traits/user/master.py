@@ -1,11 +1,12 @@
 from cantrips.iteration import items
 from cantrips.patterns.identify import List
 from cantrips.patterns.actions import AccessControlledAction
-from base import UserBroadcast
+from cantrips.protocol.traits.user.base import UserBroadcast
 from cantrips.protocol.traits.provider import IProtocolProvider
+from cantrips.protocol.traits.decorators.authcheck import IAuthCheck
 
 
-class UserMasterBroadcast(UserBroadcast, IProtocolProvider):
+class UserMasterBroadcast(UserBroadcast, IProtocolProvider, IAuthCheck):
     """
     This broadcast creates a user - it supports login features.
     """
@@ -89,41 +90,71 @@ class UserMasterBroadcast(UserBroadcast, IProtocolProvider):
         """
         return self.slaves.remove(key)
 
-    command_login = AccessControlledAction(
+    def auth_check(self, socket, state=True):
+        """
+        Determines whether the socket is logged in or not.
+        """
+        user = getattr(socket, 'end_point', None)
+        user_in = user and user in self.users()
+        result = None
+
+        if state and not user_in:
+            result = self._result_deny(self.AUTHENTICATE_RESULT_DENY_NO_ACTIVE_SESSION)
+        elif not state and user_in:
+            result = self._result_deny(self.AUTHENTICATE_RESULT_DENY_ALREADY_ACTIVE_SESSION)
+
+        if result:
+            socket.send_message(self.AUTHENTICATE_RESPONSE_NS, self.AUTHENTICATE_RESPONSE_CODE_RESPONSE, result=result)
+            return False
+        return True
+
+    def auth_set(self, socket, *args, **kwargs):
+        """
+        Sets the end_point attribute on the socket to the current user.
+        """
+        socket.end_point = kwargs['end_point']
+
+    def auth_clear(self, socket):
+        """
+        Unsets the end_point attribute on the socket.
+        """
+        del socket.end_point
+
+    command_login = IAuthCheck.logout_required(AccessControlledAction(
         lambda obj, socket, *args, **kwargs: obj._command_is_allowed_login(socket, *args, **kwargs),
         lambda obj, result: obj._accepts(result),
         lambda obj, result, socket, *args, **kwargs: obj._command_accepted_login(result, socket, *args, **kwargs),
         lambda obj, result, socket, *args, **kwargs: obj._command_rejected_login(result, socket, *args, **kwargs),
     ).as_method("""
     Allows sockets to log-in to the server. Its check (_login_command_is_allowed) MUST be implemented.
-    """)
+    """))
 
-    command_logout = AccessControlledAction(
+    command_logout = IAuthCheck.login_required(AccessControlledAction(
         lambda obj, socket, *args, **kwargs: obj._command_is_allowed_logout(socket, *args, **kwargs),
         lambda obj, result: obj._accepts(result),
         lambda obj, result, socket, *args, **kwargs: obj._command_accepted_logout(result, socket, *args, **kwargs),
         lambda obj, result, socket, *args, **kwargs: obj._command_rejected_logout(result, socket, *args, **kwargs),
     ).as_method("""
     Allows sockets to log-out from the server.
-    """)
+    """))
 
-    command_create_slave = AccessControlledAction(
+    command_create_slave = IAuthCheck.login_required(AccessControlledAction(
         lambda obj, user, slave_name, *args, **kwargs: obj._command_is_allowed_create_slave(user, slave_name, *args, **kwargs),
         lambda obj, result: obj.accepts(result),
         lambda obj, result, user, slave_name, *args, **kwargs: obj._command_accepted_create_slave(result, user, slave_name, *args, **kwargs),
         lambda obj, result, user, slave_name, *args, **kwargs: obj._command_rejected_create_slave(result, user, slave_name, *args, **kwargs)
     ).as_method("""
     Allows users to create slave broadcasts.
-    """)
+    """))
 
-    command_close_slave = AccessControlledAction(
+    command_close_slave = IAuthCheck.login_required(AccessControlledAction(
         lambda obj, user, slave_name, *args, **kwargs: obj._command_is_allowed_close_slave(user, slave_name, *args, **kwargs),
         lambda obj, result: obj.accepts(result),
         lambda obj, result, user, slave_name, *args, **kwargs: obj._command_accepted_close_slave(result, user, slave_name, *args, **kwargs),
         lambda obj, result, user, slave_name, *args, **kwargs: obj._command_rejected_close_slave(result, user, slave_name, *args, **kwargs)
     ).as_method("""
     Allows users to close/destroy broadcasts.
-    """)
+    """))
 
     def force_logout(self, user, *args, **kwargs):
         """
@@ -131,7 +162,7 @@ class UserMasterBroadcast(UserBroadcast, IProtocolProvider):
           command is not executed by the client, it must return a boolean
           value indicating whether the user was logged in or not.
         """
-        if user in self._broadcast.users():
+        if user in self.users():
             self.unregister(self.users()[user], *args, **kwargs)
             user.socket.send_message(self.AUTHENTICATE_NS, self.AUTHENTICATE_CODE_FORCED_LOGOUT, *args, **kwargs)
             return True
@@ -187,18 +218,14 @@ class UserMasterBroadcast(UserBroadcast, IProtocolProvider):
         """
         Checks whether a user must be allowed, or not, to log-in (e.g. bad user/password).
         """
-        user = getattr(socket, 'user_endpoint')
-        if user and user in self.users():
-            return self._result_deny(self.AUTHENTICATE_RESULT_DENY_ALREADY_ACTIVE_SESSION)
-        else:
-            return self._impl_login(socket, *args, **kwargs) or self._result_deny(self.AUTHENTICATE_RESULT_DENY_INVALID)
+        return self._impl_login(socket, *args, **kwargs) or self._result_deny(self.AUTHENTICATE_RESULT_DENY_INVALID)
 
     def _command_accepted_login(self, result, socket, *args, **kwargs):
         """
         Accepts the login attempt and registers the user in the broadcast.
         """
         user_key, user_args, user_kwargs = result
-        self.register(user_key, *user_args, **user_kwargs)
+        self.auth_set(socket, end_point=self.register(user_key, *user_args, **user_kwargs))
         socket.send_message(self.AUTHENTICATE_RESPONSE_NS, self.AUTHENTICATE_RESPONSE_CODE_RESPONSE, result=result)
 
     def _command_rejected_login(self, result, socket, *args, **kwargs):
@@ -211,23 +238,18 @@ class UserMasterBroadcast(UserBroadcast, IProtocolProvider):
         """
         Checks whether the socket should be allowed to logout.
         """
-        user = getattr(socket, 'user_endpoint')
-        if user and user in self.users():
-            return self._result_allow(self.AUTHENTICATE_RESULT_ALLOW_LOGGED_OUT)
-        else:
-            return self._result_deny(self.AUTHENTICATE_RESULT_DENY_NO_ACTIVE_SESSION)
+        return self._result_allow(self.AUTHENTICATE_RESULT_ALLOW_LOGGED_OUT)
 
     def _command_accepted_logout(self, result, socket, *args, **kwargs):
         """
         Accepts the logout command and cleans the user_endpoint.
         """
         self.unregister(socket.user_endpoint, *args, **kwargs)
+        self.auth_clear(socket)
         socket.send_message(self.AUTHENTICATE_RESPONSE_NS, self.AUTHENTICATE_RESPONSE_CODE_RESPONSE, result=result)
 
     def _command_rejected_logout(self, result, socket, *args, **kwargs):
         """
         Rejects the logout command, and cleans the user_endpoint (perhaps an expired session exists).
         """
-        if hasattr(socket, 'user_endpoint'):
-            del socket.user_endpoint
         socket.send_message(self.AUTHENTICATE_RESPONSE_NS, self.AUTHENTICATE_RESPONSE_CODE_RESPONSE, result=result)
