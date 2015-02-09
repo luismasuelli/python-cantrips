@@ -10,7 +10,6 @@ class UserEndpoint(Identified):
     """
 
     def __init__(self, key, socket, *args, **kwargs):
-        socket.user_endpoint = self
         super(UserEndpoint, self).__init__(key, socket=socket, *args, **kwargs)
 
     def notify(self, ns, code, *args, **kwargs):
