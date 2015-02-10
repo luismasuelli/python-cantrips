@@ -4,6 +4,68 @@ from cantrips.patterns.actions import AccessControlledAction
 from cantrips.protocol.traits.user.base import UserBroadcast
 from cantrips.protocol.traits.provider import IProtocolProvider
 from cantrips.protocol.traits.decorators.authcheck import IAuthCheck
+from cantrips.functions import is_method, METHOD_BOUND, METHOD_INSTANCE
+
+
+class ForwardNone(object):
+    """
+    This is a dummy object which does nothing when calls are performed on it.
+    """
+
+    class Dummy(object):
+        """
+        Dummy object. It should be considered null or empty.
+        """
+
+        def __call__(self, *args, **kwargs):
+            pass
+
+        def __bool__(self):
+            return False
+
+        def __nonzero__(self):
+            return False
+
+        def __int__(self):
+            return 0
+
+        def __long__(self):
+            return 0
+
+        def __str__(self):
+            return ""
+
+        def __unicode__(self):
+            return u""
+
+    def __getattr__(self, item):
+        return self.Dummy()
+
+
+class ForwardSlave(object):
+    """
+    Takes a slave and a socket. Calls are forwarded to the slave, proxy-passing
+      the socket to the call. This means:
+
+      master.forward(slave, socket).mycall(a, b, c=c)
+
+      is equivalent to:
+
+      slave.my_call(socket, a, b, c=c)
+
+    If the instance returns a non-method value, then nothing is forwarded. This
+      includes, but does not limit to, @staticmethod-decorated functions
+    """
+
+    def __init__(self, slave, socket):
+        self.slave = slave
+        self.socket = socket
+
+    def __getattr__(self, item):
+        value = getattr(self.slave, item, None)
+        if is_method(value, METHOD_BOUND):
+            return lambda *a, **kwa: value(self.socket, *a, **kwa)
+        return value
 
 
 class UserMasterBroadcast(UserBroadcast, IProtocolProvider, IAuthCheck):
@@ -270,11 +332,32 @@ class UserMasterBroadcast(UserBroadcast, IProtocolProvider, IAuthCheck):
     # Funciones auxiliares de comando (no lo resuelven por si mismas)
     #################################################################
 
-    def forward(self, socket, channel, command, *args, **kwargs):
+    def forward(self, socket, channel):
         """
-        Forwards a command to the requested channel.
+        Gets a forward object. Passed commands to such objects get the slave, and socket, proxied.
+
+        This means:
+           master.forward('my-room', socket).my_command(a, b, c=c)
+
+        is equivalent to:
+           master.slaves['my_room'].my_command(socket, a, b, c=c)
+
+        with the exception that this utility considers the case where the slave does not exist, and
+          process something according to such error. Calls done to the unexistent channel are ignored.
+          You should watch out on not retrieving attributes other than to be called, since attributes
+          are dummy functions or false values.
         """
         if channel in self.slaves:
-            getattr(self.slaves[channel], command)(socket, *args, **kwargs)
+            return ForwardSlave(self.slaves[channel], socket)
         else:
-            socket.send_message(self.CHANNEL_RESPONSE_NS, self.CHANNEL_RESPONSE_CODE_RESPONSE, self._result_deny(self.CHANNEL_RESULT_DENY_UNEXISTENT))
+            self._forward_invalid(socket, channel)
+            return ForwardNone()
+
+    def _forward_invalid(self, socket, channel):
+        """
+        What to do when a bad forward occurs (i.e. the channel does not exist).
+        :param socket:
+        :param channel:
+        :return:
+        """
+        socket.send_message(self.CHANNEL_RESPONSE_NS, self.CHANNEL_RESPONSE_CODE_RESPONSE, self._result_deny(self.CHANNEL_RESULT_DENY_UNEXISTENT))
