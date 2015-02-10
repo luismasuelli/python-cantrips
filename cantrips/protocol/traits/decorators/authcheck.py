@@ -48,4 +48,4 @@ class IAuthCheck(object):
         def wrapped(self, socket, *args, **kwargs):
             if self.auth_check(socket, False):
                 f(self, socket, *args, **kwargs)
-            return wrapped
+        return wrapped
