@@ -243,7 +243,7 @@ class UserMasterBroadcast(UserBroadcast, IProtocolProvider, IAuthCheck):
     Allows users to close/destroy broadcasts.
     """))
 
-    def _impl_login(self, socket, *args, **kwargs):
+    def _command_login_impl(self, socket, *args, **kwargs):
         """
         Performs log-in. Should return a triple:
           (user key, user args, user kwargs).
@@ -292,7 +292,7 @@ class UserMasterBroadcast(UserBroadcast, IProtocolProvider, IAuthCheck):
         """
         Checks whether a user must be allowed, or not, to log-in (e.g. bad user/password).
         """
-        return self._impl_login(socket, *args, **kwargs) or self._result_deny(self.AUTHENTICATE_RESULT_DENY_INVALID)
+        return self._command_login_impl(socket, *args, **kwargs) or self._result_deny(self.AUTHENTICATE_RESULT_DENY_INVALID)
 
     def _command_accepted_login(self, result, socket, *args, **kwargs):
         """
