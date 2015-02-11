@@ -109,11 +109,17 @@ class UserMasterBroadcast(UserBroadcast, IProtocolProvider, IAuthCheck):
                 cls.AUTHENTICATE_CODE_LOGOUT: 'server',
                 cls.AUTHENTICATE_CODE_FORCED_LOGOUT: 'client'
             },
+            cls.AUTHENTICATE_RESPONSE_NS: {
+                cls.AUTHENTICATE_RESPONSE_CODE_RESPONSE: 'client'
+            },
             cls.CHANNEL_NS: {
                 cls.CHANNEL_CODE_CREATE: 'server',
                 cls.CHANNEL_CODE_CLOSE: 'server',
                 cls.CHANNEL_CODE_JOIN: 'server',
                 cls.CHANNEL_CODE_PART: 'server'
+            },
+            cls.CHANNEL_RESPONSE_NS: {
+                cls.CHANNEL_RESPONSE_CODE_RESPONSE: 'client'
             }
         }
 
