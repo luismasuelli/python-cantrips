@@ -14,18 +14,6 @@ class IAuthCheck(object):
         """
         raise NotImplementedError
 
-    def auth_set(self, socket, *args, **kwargs):
-        """
-        Sets the logged state inside the user.
-        """
-        raise NotImplementedError
-
-    def auth_clear(self, socket):
-        """
-        Unsets the logged state from the user.
-        """
-        raise NotImplementedError
-
     @staticmethod
     def login_required(f):
         """
@@ -49,3 +37,18 @@ class IAuthCheck(object):
             if self.auth_check(socket, False):
                 f(self, socket, *args, **kwargs)
         return wrapped
+
+
+class IAuthHandle(IAuthCheck):
+
+    def auth_set(self, socket, *args, **kwargs):
+        """
+        Sets the logged state inside the user.
+        """
+        raise NotImplementedError
+
+    def auth_clear(self, socket):
+        """
+        Unsets the logged state from the user.
+        """
+        raise NotImplementedError

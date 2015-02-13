@@ -3,8 +3,8 @@ from cantrips.patterns.identify import List
 from cantrips.patterns.actions import AccessControlledAction
 from cantrips.protocol.traits.user.base import UserBroadcast
 from cantrips.protocol.traits.provider import IProtocolProvider
-from cantrips.protocol.traits.decorators.authcheck import IAuthCheck
-from cantrips.functions import is_method, METHOD_BOUND, METHOD_INSTANCE
+from cantrips.protocol.traits.decorators.authcheck import IAuthCheck, IAuthHandle
+from cantrips.functions import is_method, METHOD_BOUND
 
 
 class ForwardNone(object):
@@ -68,7 +68,7 @@ class ForwardSlave(object):
         return value
 
 
-class UserMasterBroadcast(UserBroadcast, IProtocolProvider, IAuthCheck):
+class UserMasterBroadcast(UserBroadcast, IProtocolProvider, IAuthHandle):
     """
     This broadcast creates a user - it supports login features.
     """
