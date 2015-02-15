@@ -51,9 +51,26 @@ class UserSlaveBroadcast(UserBroadcast, IAuthCheck, IInCheck, IProtocolProvider)
 
     def in_check(self, socket, state=True):
         """
-
+        Determines whether the socket is (logged-in and) in the channel.
+        If the user is not logged in, None is returned. Otherwise, it is
+          returned whether the in-state matches the passed state.
         """
-        #TODO
+        if not self.auth_check(socket):
+            return None
+
+        result = None
+        user = getattr(socket, 'end_point', None)
+        user_in = user and user in self.users()
+
+        if state and not user_in:
+            result = self._result_deny(self.CHANNEL_RESULT_DENY_PART_NOT_IN)
+        elif not state and user_in:
+            result = self._result_deny(self.CHANNEL_RESULT_DENY_JOIN_ALREADY_IN)
+
+        if result:
+            socket.send_message(self.CHANNEL_RESPONSE_NS, self.CHANNEL_RESPONSE_CODE_RESPONSE, result=result)
+            return False
+        return True
 
     def register(self, user, *args, **kwargs):
         """
