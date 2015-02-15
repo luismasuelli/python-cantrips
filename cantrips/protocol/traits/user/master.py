@@ -90,8 +90,6 @@ class UserMasterBroadcast(UserBroadcast, IProtocolProvider, IAuthHandle):
     CHANNEL_NS = 'channel'
     CHANNEL_CODE_CREATE = 'create'
     CHANNEL_CODE_CLOSE = 'close'
-    CHANNEL_CODE_JOIN = 'join'
-    CHANNEL_CODE_PART = 'part'
 
     CHANNEL_RESPONSE_NS = 'notify'
     CHANNEL_RESPONSE_CODE_RESPONSE = 'response'
@@ -115,8 +113,6 @@ class UserMasterBroadcast(UserBroadcast, IProtocolProvider, IAuthHandle):
             cls.CHANNEL_NS: {
                 cls.CHANNEL_CODE_CREATE: 'server',
                 cls.CHANNEL_CODE_CLOSE: 'server',
-                cls.CHANNEL_CODE_JOIN: 'server',
-                cls.CHANNEL_CODE_PART: 'server'
             },
             cls.CHANNEL_RESPONSE_NS: {
                 cls.CHANNEL_RESPONSE_CODE_RESPONSE: 'client'
