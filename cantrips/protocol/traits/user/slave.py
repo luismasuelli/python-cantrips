@@ -1,10 +1,11 @@
 from base import UserBroadcast
 from cantrips.patterns.actions import AccessControlledAction
 from cantrips.protocol.traits.decorators.authcheck import IAuthCheck
+from cantrips.protocol.traits.decorators.incheck import IInCheck
 from cantrips.protocol.traits.provider import IProtocolProvider
 
 
-class UserSlaveBroadcast(UserBroadcast, IAuthCheck, IProtocolProvider):
+class UserSlaveBroadcast(UserBroadcast, IAuthCheck, IInCheck, IProtocolProvider):
     """
     This broadcast adds an existing user. It does not support login features.
     """
@@ -20,8 +21,10 @@ class UserSlaveBroadcast(UserBroadcast, IAuthCheck, IProtocolProvider):
 
     CHANNEL_RESULT_ALLOW_JOIN = 'join-accepted'
     CHANNEL_RESULT_DENY_JOIN = 'join-rejected'
+    CHANNEL_RESULT_DENY_JOIN_ALREADY_IN = 'already-in-channel'
     CHANNEL_RESULT_ALLOW_PART = 'part-accepted'
     CHANNEL_RESULT_DENY_PART = 'part-rejected'
+    CHANNEL_RESULT_DENY_PART_NOT_IN = 'not-in-channel'
 
     @classmethod
     def specification(cls):
@@ -46,6 +49,12 @@ class UserSlaveBroadcast(UserBroadcast, IAuthCheck, IProtocolProvider):
         """
         return self.master.auth_check(socket, state)
 
+    def in_check(self, socket, state=True):
+        """
+
+        """
+        #TODO
+
     def register(self, user, *args, **kwargs):
         """
         Inserts a user instance (arguments are ignored).
@@ -56,13 +65,13 @@ class UserSlaveBroadcast(UserBroadcast, IAuthCheck, IProtocolProvider):
         """
         Forces a user to be removed from the slave.
         """
-        pass
+        #TODO
 
     def force_join(self, user, *args, **kwargs):
         """
         Forces a user to be added to the slave.
         """
-        pass
+        #TODO
 
     command_join = IAuthCheck.logout_required(AccessControlledAction(
         lambda obj, socket: obj._command_is_allowed_join(socket),
@@ -92,7 +101,7 @@ class UserSlaveBroadcast(UserBroadcast, IAuthCheck, IProtocolProvider):
         """
 
         """
-        pass
+        #TODO
 
     def _command_rejected_join(self, result, socket):
         """
@@ -110,7 +119,7 @@ class UserSlaveBroadcast(UserBroadcast, IAuthCheck, IProtocolProvider):
         """
 
         """
-        pass
+        #TODO
 
     def _command_rejected_part(self, result, socket):
         """
