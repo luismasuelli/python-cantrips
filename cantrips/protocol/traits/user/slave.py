@@ -16,8 +16,10 @@ class UserSlaveBroadcast(UserBroadcast, IAuthCheck, IInCheck, IProtocolProvider)
 
     CHANNEL_NS = 'channel'
     CHANNEL_CODE_JOIN = 'join'
+    CHANNEL_CODE_FORCED_JOIN = 'forced-join'
     CHANNEL_CODE_JOINED = 'joined'
     CHANNEL_CODE_PART = 'part'
+    CHANNEL_CODE_FORCED_PART = 'forced-part'
     CHANNEL_CODE_PARTED = 'parted'
 
     CHANNEL_RESULT_ALLOW_JOIN = 'join-accepted'
@@ -37,18 +39,20 @@ class UserSlaveBroadcast(UserBroadcast, IAuthCheck, IInCheck, IProtocolProvider)
 
     @classmethod
     def _part_criteria(cls, user):
-        return IBroadcast.BROADCAST_FILTER_ALL(IBroadcast.BROADCAST_FILTER_OTHERS(user), cls.part_criteria(user))
+        return IBroadcast.BROADCAST_FILTER_AND(IBroadcast.BROADCAST_FILTER_OTHERS(user), cls.part_criteria(user))
 
     @classmethod
     def _join_criteria(cls, user):
-        return IBroadcast.BROADCAST_FILTER_ALL(IBroadcast.BROADCAST_FILTER_OTHERS(user), cls.join_criteria(user))
+        return IBroadcast.BROADCAST_FILTER_AND(IBroadcast.BROADCAST_FILTER_OTHERS(user), cls.join_criteria(user))
 
     @classmethod
     def specification(cls):
         return {
             cls.CHANNEL_NS: {
                 cls.CHANNEL_CODE_JOIN: 'server',
+                cls.CHANNEL_CODE_FORCED_JOIN: 'client',
                 cls.CHANNEL_CODE_PART: 'server',
+                cls.CHANNEL_CODE_FORCED_PART: 'client',
                 cls.CHANNEL_CODE_JOINED: 'client',
                 cls.CHANNEL_CODE_PARTED: 'client',
             },
@@ -111,15 +115,25 @@ class UserSlaveBroadcast(UserBroadcast, IAuthCheck, IInCheck, IProtocolProvider)
         """
         Forces a user to be removed from the slave.
         """
-        #TODO
+        if user in self.users():
+            self.unregister(self.users()[user])
+            user.socket.send_message(self.CHANNEL_NS, self.CHANNEL_CODE_FORCED_PART, *args, **kwargs)
+            return True
+        else:
+            return False
 
     def force_join(self, user, *args, **kwargs):
         """
         Forces a user to be added to the slave.
         """
-        #TODO
+        if user in self.master.users() and user not in self.users():
+            self.register(self.master.users()[user])
+            user.socket.send_message(self.CHANNEL_NS, self.CHANNEL_CODE_FORCED_JOIN, *args, **kwargs)
+            return True
+        else:
+            return False
 
-    command_join = IAuthCheck.logout_required(AccessControlledAction(
+    command_join = IInCheck.out_required(AccessControlledAction(
         lambda obj, socket: obj._command_is_allowed_join(socket),
         lambda obj, result: obj._accepts(result),
         lambda obj, result, socket: obj._command_accepted_join(result, socket),
@@ -128,7 +142,7 @@ class UserSlaveBroadcast(UserBroadcast, IAuthCheck, IInCheck, IProtocolProvider)
     Lets a user join this slave.
     """))
 
-    command_part = IAuthCheck.logout_required(AccessControlledAction(
+    command_part = IInCheck.in_required(AccessControlledAction(
         lambda obj, socket: obj._command_is_allowed_part(socket),
         lambda obj, result: obj._accepts(result),
         lambda obj, result, socket: obj._command_accepted_part(result, socket),
