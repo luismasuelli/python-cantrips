@@ -92,7 +92,7 @@ class UserSlaveBroadcast(UserBroadcast, IAuthCheck, IInCheck, IProtocolProvider)
             return None
 
         result = None
-        user = getattr(socket, 'end_point', None)
+        user = self.master.auth_get(socket)
         user_in = user and user in self.users()
 
         if state and not user_in:
@@ -161,7 +161,7 @@ class UserSlaveBroadcast(UserBroadcast, IAuthCheck, IInCheck, IProtocolProvider)
         """
         The join command was accepted.
         """
-        self.register(socket.end_point)
+        self.register(self.master.auth_get(socket))
         socket.send_message(self.CHANNEL_RESPONSE_NS, self.CHANNEL_RESPONSE_CODE_RESPONSE, result=result, channel=self.key)
 
     def _command_rejected_join(self, result, socket):
@@ -180,7 +180,7 @@ class UserSlaveBroadcast(UserBroadcast, IAuthCheck, IInCheck, IProtocolProvider)
         """
         The part command was accepted.
         """
-        self.unregister(socket.end_point)
+        self.unregister(self.master.auth_get(socket))
         socket.send_message(self.CHANNEL_RESPONSE_NS, self.CHANNEL_RESPONSE_CODE_RESPONSE, result=result, channel=self.key)
 
     def _command_rejected_part(self, result, socket):
