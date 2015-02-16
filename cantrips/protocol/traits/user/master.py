@@ -121,7 +121,7 @@ class UserMasterBroadcast(UserBroadcast, IProtocolProvider, IAuthHandle):
 
     def __init__(self, key, slave_class, *args, **kwargs):
         """
-        Instantiates a master broadcast by specifying a .
+        Instantiates a master broadcast by creating a slaves  list, and some list handlers.
         """
         super(UserMasterBroadcast, self).__init__(key, slaves=List(slave_class), *args, **kwargs)
 
