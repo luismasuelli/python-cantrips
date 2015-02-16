@@ -76,7 +76,7 @@ class UserMasterBroadcast(UserBroadcast, IProtocolProvider, IAuthHandle):
     AUTHENTICATE_NS = 'auth'
     AUTHENTICATE_CODE_LOGIN = 'login'
     AUTHENTICATE_CODE_LOGOUT = 'logout'
-    AUTHENTICATE_CODE_FORCED_LOGOUT = 'logged-out'
+    AUTHENTICATE_CODE_FORCED_LOGOUT = 'forced-logout'
 
     AUTHENTICATE_RESPONSE_NS = 'notify'
     AUTHENTICATE_RESPONSE_CODE_RESPONSE = 'response'
