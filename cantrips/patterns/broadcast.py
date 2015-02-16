@@ -64,6 +64,27 @@ class IBroadcast(INotifier, IRegistrar):
             user = (user,)
         return lambda u, command, *args, **kwargs: u not in user
 
+    @staticmethod
+    def BROADCAST_FILTER_AND(*funcs):
+        """
+        Composes the passed filters into an and-joined filter.
+        """
+        return lambda u, command, *args, **kwargs: all(f(u, command, *args, **kwargs) for f in funcs)
+
+    @staticmethod
+    def BROADCAST_FILTER_OR(*funcs):
+        """
+        Composes the passed filters into an and-joined filter.
+        """
+        return lambda u, command, *args, **kwargs: any(f(u, command, *args, **kwargs) for f in funcs)
+
+    @staticmethod
+    def BROADCAST_FILTER_NOT(func):
+        """
+        Composes the passed filters into an and-joined filter.
+        """
+        return lambda u, command, *args, **kwargs: not func(u, command, *args, **kwargs)
+
     def broadcast(self, command, *args, **kwargs):
         """
         Notifies each user with a specified command.
