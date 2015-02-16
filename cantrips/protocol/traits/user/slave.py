@@ -1,3 +1,4 @@
+from cantrips.patterns.broadcast import IBroadcast
 from base import UserBroadcast
 from cantrips.patterns.actions import AccessControlledAction
 from cantrips.protocol.traits.decorators.authcheck import IAuthCheck
@@ -25,6 +26,22 @@ class UserSlaveBroadcast(UserBroadcast, IAuthCheck, IInCheck, IProtocolProvider)
     CHANNEL_RESULT_ALLOW_PART = 'part-accepted'
     CHANNEL_RESULT_DENY_PART = 'part-rejected'
     CHANNEL_RESULT_DENY_PART_NOT_IN = 'not-in-channel'
+
+    @classmethod
+    def part_criteria(cls, user):
+        return lambda u, command, *args, **kwargs: True
+
+    @classmethod
+    def join_criteria(cls, user):
+        return lambda u, command, *args, **kwargs: True
+
+    @classmethod
+    def _part_criteria(cls, user):
+        return IBroadcast.BROADCAST_FILTER_ALL(IBroadcast.BROADCAST_FILTER_OTHERS(user), cls.part_criteria(user))
+
+    @classmethod
+    def _join_criteria(cls, user):
+        return IBroadcast.BROADCAST_FILTER_ALL(IBroadcast.BROADCAST_FILTER_OTHERS(user), cls.join_criteria(user))
 
     @classmethod
     def specification(cls):
@@ -116,9 +133,12 @@ class UserSlaveBroadcast(UserBroadcast, IAuthCheck, IInCheck, IProtocolProvider)
 
     def _command_accepted_join(self, result, socket):
         """
-
+        The join command was accepted.
         """
-        #TODO
+        self.register(socket.end_point)
+        others = self._join_criteria(socket.end_point)
+        self.broadcast((self.CHANNEL_NS, self.CHANNEL_CODE_JOINED), filter=others, user=socket.end_point.key)
+        socket.send_message(self.CHANNEL_RESPONSE_NS, self.CHANNEL_RESPONSE_CODE_RESPONSE, result=result, channel=self.key)
 
     def _command_rejected_join(self, result, socket):
         """
@@ -134,9 +154,12 @@ class UserSlaveBroadcast(UserBroadcast, IAuthCheck, IInCheck, IProtocolProvider)
 
     def _command_accepted_part(self, result, socket):
         """
-
+        The part command was accepted.
         """
-        #TODO
+        self.unregister(socket.end_point)
+        others = self._part_criteria(socket.end_point)
+        self.broadcast((self.CHANNEL_NS, self.CHANNEL_CODE_PARTED), filter=others, user=socket.end_point.key)
+        socket.send_message(self.CHANNEL_RESPONSE_NS, self.CHANNEL_RESPONSE_CODE_RESPONSE, result=result, channel=self.key)
 
     def _command_rejected_part(self, result, socket):
         """
