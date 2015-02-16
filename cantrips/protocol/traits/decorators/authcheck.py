@@ -52,3 +52,9 @@ class IAuthHandle(IAuthCheck):
         Unsets the logged state from the user.
         """
         raise NotImplementedError
+
+    def auth_get(self, socket):
+        """
+        Gets the logged state from the user.
+        """
+        raise NotImplementedError
