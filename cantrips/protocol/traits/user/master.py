@@ -182,6 +182,12 @@ class UserMasterBroadcast(UserBroadcast, IProtocolProvider, IAuthHandle):
         """
         socket.end_point = kwargs['end_point']
 
+    def auth_get(self, socket):
+        """
+        Gets the auth state from the socket: the user object.
+        """
+        return getattr(socket, 'end_point', None)
+
     def auth_clear(self, socket):
         """
         Unsets the end_point attribute on the socket.
