@@ -82,6 +82,12 @@ class UserSlaveBroadcast(UserBroadcast, IAuthCheck, IInCheck, IProtocolProvider)
         """
         return self.master.auth_check(socket, state)
 
+    def auth_get(self, socket):
+        """
+        Delegates the auth get in the assigned-to master.
+        """
+        return self.master.auth_get(socket)
+
     def in_check(self, socket, state=True):
         """
         Determines whether the socket is (logged-in and) in the channel.
@@ -92,7 +98,7 @@ class UserSlaveBroadcast(UserBroadcast, IAuthCheck, IInCheck, IProtocolProvider)
             return None
 
         result = None
-        user = self.master.auth_get(socket)
+        user = self.auth_get(socket)
         user_in = user and user in self.users()
 
         if state and not user_in:
@@ -161,7 +167,7 @@ class UserSlaveBroadcast(UserBroadcast, IAuthCheck, IInCheck, IProtocolProvider)
         """
         The join command was accepted.
         """
-        self.register(self.master.auth_get(socket))
+        self.register(self.auth_get(socket))
         socket.send_message(self.CHANNEL_RESPONSE_NS, self.CHANNEL_RESPONSE_CODE_RESPONSE, result=result, channel=self.key)
 
     def _command_rejected_join(self, result, socket):
@@ -180,7 +186,7 @@ class UserSlaveBroadcast(UserBroadcast, IAuthCheck, IInCheck, IProtocolProvider)
         """
         The part command was accepted.
         """
-        self.unregister(self.master.auth_get(socket))
+        self.unregister(self.auth_get(socket))
         socket.send_message(self.CHANNEL_RESPONSE_NS, self.CHANNEL_RESPONSE_CODE_RESPONSE, result=result, channel=self.key)
 
     def _command_rejected_part(self, result, socket):
