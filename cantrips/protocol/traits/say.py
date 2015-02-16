@@ -1,11 +1,12 @@
 from cantrips.patterns.actions import AccessControlledAction
 from cantrips.patterns.broadcast import IBroadcast
+from cantrips.protocol.traits.decorators.authcheck import IAuthCheck
 from cantrips.protocol.traits.decorators.incheck import IInCheck
 from cantrips.protocol.traits.permcheck import PermCheck
 from cantrips.protocol.traits.provider import IProtocolProvider
 
 
-class SayBroadcast(IBroadcast, PermCheck, IProtocolProvider, IInCheck):
+class SayBroadcast(IBroadcast, PermCheck, IProtocolProvider, IAuthCheck, IInCheck):
     """
     This trait, applied to an existent broadcast, lets users
       to publish messages to the whole broadcast.
@@ -55,8 +56,8 @@ class SayBroadcast(IBroadcast, PermCheck, IProtocolProvider, IInCheck):
         User message was accepted. Notify the user AND broadcast the message to other users.
         """
         socket.send_message(self.SAY_RESPONSE_NS, self.SAY_RESPONSE_CODE_RESPONSE, result=result, message=message)
-        others = IBroadcast.BROADCAST_FILTER_OTHERS(self.users()[socket.end_point])
-        self.broadcast((self.SAY_NS, self.SAY_CODE_SAID), user=socket.end_point.key, message=message, filter=others)
+        others = IBroadcast.BROADCAST_FILTER_OTHERS(self.users()[self.auth_get(socket)])
+        self.broadcast((self.SAY_NS, self.SAY_CODE_SAID), user=self.auth_get(socket).key, message=message, filter=others)
 
     def _say_command_on_rejected(self, result, socket, message):
         """
