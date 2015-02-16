@@ -58,7 +58,19 @@ class UserSlaveBroadcast(UserBroadcast, IAuthCheck, IInCheck, IProtocolProvider)
         }
 
     def __init__(self, key, master, *args, **kwargs):
+        """
+        Instantiates a slave broadcast by specifying a master, and register/unregister list handlers.
+        """
         super(UserSlaveBroadcast, self).__init__(key, master=master, *args, **kwargs)
+
+        def register(list, instance):
+            self.broadcast((self.CHANNEL_NS, self.CHANNEL_CODE_JOINED), filter=self._join_criteria(instance), user=instance.key)
+
+        def unregister(list, instance, by_val):
+            self.broadcast((self.CHANNEL_NS, self.CHANNEL_CODE_PARTED), filter=self._part_criteria(instance), user=instance.key)
+
+        self.list.events.remove.register(unregister)
+        self.list.events.insert.register(register)
 
     def auth_check(self, socket, state=True):
         """
@@ -136,8 +148,6 @@ class UserSlaveBroadcast(UserBroadcast, IAuthCheck, IInCheck, IProtocolProvider)
         The join command was accepted.
         """
         self.register(socket.end_point)
-        others = self._join_criteria(socket.end_point)
-        self.broadcast((self.CHANNEL_NS, self.CHANNEL_CODE_JOINED), filter=others, user=socket.end_point.key)
         socket.send_message(self.CHANNEL_RESPONSE_NS, self.CHANNEL_RESPONSE_CODE_RESPONSE, result=result, channel=self.key)
 
     def _command_rejected_join(self, result, socket):
@@ -157,8 +167,6 @@ class UserSlaveBroadcast(UserBroadcast, IAuthCheck, IInCheck, IProtocolProvider)
         The part command was accepted.
         """
         self.unregister(socket.end_point)
-        others = self._part_criteria(socket.end_point)
-        self.broadcast((self.CHANNEL_NS, self.CHANNEL_CODE_PARTED), filter=others, user=socket.end_point.key)
         socket.send_message(self.CHANNEL_RESPONSE_NS, self.CHANNEL_RESPONSE_CODE_RESPONSE, result=result, channel=self.key)
 
     def _command_rejected_part(self, result, socket):
