@@ -1,10 +1,11 @@
 from cantrips.patterns.actions import AccessControlledAction
 from cantrips.patterns.broadcast import IBroadcast
+from cantrips.protocol.traits.decorators.incheck import IInCheck
 from cantrips.protocol.traits.permcheck import PermCheck
 from cantrips.protocol.traits.provider import IProtocolProvider
 
 
-class SayBroadcast(IBroadcast, PermCheck, IProtocolProvider):
+class SayBroadcast(IBroadcast, PermCheck, IProtocolProvider, IInCheck):
     """
     This trait, applied to an existent broadcast, lets users
       to publish messages to the whole broadcast.
@@ -16,7 +17,6 @@ class SayBroadcast(IBroadcast, PermCheck, IProtocolProvider):
     SAY_RESPONSE_NS = 'notify'
     SAY_RESPONSE_CODE_RESPONSE = 'response'
 
-    SAY_RESULT_DENY_NOT_IN = 'not-in'
     SAY_RESULT_ALLOW = 'ok'
 
     @classmethod
@@ -30,38 +30,36 @@ class SayBroadcast(IBroadcast, PermCheck, IProtocolProvider):
             }
         }
 
-    say = AccessControlledAction(
-        lambda obj, user, message: obj._say_command_is_allowed(user, message),
+    say = IInCheck.in_required(AccessControlledAction(
+        lambda obj, socket, message: obj._say_command_is_allowed(socket, message),
         lambda obj, result: obj._accepts(result),
-        lambda obj, result, user, message: obj._say_command_on_accepted(result, user, message),
-        lambda obj, result, user, message: obj._say_command_on_rejected(result, user, message),
+        lambda obj, result, socket, message: obj._say_command_on_accepted(result, socket, message),
+        lambda obj, result, socket, message: obj._say_command_on_rejected(result, socket, message),
     ).as_method("""
     A user (given by key or instance) can send a message to the broadcast.
     This is restricted to users already subscribed to the broadcast.
 
     To customize the protocol for this command, refer and override each SAY_* class member.
-    """)
+    """))
 
-    def _say_command_is_allowed(self, user, message):
+    def _say_command_is_allowed(self, socket, message):
         """
         Determines whether the user is allowed to send a message.
 
         Primitive check - allow only connected users.
         """
-        if user not in self.users():
-            return self._result_deny(self.SAY_RESULT_DENY_NOT_IN)
         return self._result_allow(self.SAY_RESULT_ALLOW)
 
-    def _say_command_on_accepted(self, result, user, message):
+    def _say_command_on_accepted(self, result, socket, message):
         """
         User message was accepted. Notify the user AND broadcast the message to other users.
         """
-        self.notify(user, (self.SAY_RESPONSE_NS, self.SAY_RESPONSE_CODE_RESPONSE), result=result, message=message)
-        others = IBroadcast.BROADCAST_FILTER_OTHERS(self.users()[user])
-        self.broadcast((self.SAY_NS, self.SAY_CODE_SAID), user=user, message=message, filter=others)
+        socket.send_message(self.SAY_RESPONSE_NS, self.SAY_RESPONSE_CODE_RESPONSE, result=result, message=message)
+        others = IBroadcast.BROADCAST_FILTER_OTHERS(self.users()[socket.end_point])
+        self.broadcast((self.SAY_NS, self.SAY_CODE_SAID), user=socket.end_point.key, message=message, filter=others)
 
-    def _say_command_on_rejected(self, result, user, message):
+    def _say_command_on_rejected(self, result, socket, message):
         """
         User message was rejected.
         """
-        self.notify(user, (self.SAY_RESPONSE_NS, self.SAY_RESPONSE_CODE_RESPONSE), result=result, message=message)
+        socket.send_message(self.SAY_RESPONSE_NS, self.SAY_RESPONSE_CODE_RESPONSE, result=result, message=message)
