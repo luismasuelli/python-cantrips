@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
     name='python-cantrips',
-    version='0.5.9',
+    version='0.6.0',
     packages=['cantrips',
               'cantrips.watch',
               'cantrips.types',
@@ -10,6 +10,8 @@ setup(
               'cantrips.protocol',
               'cantrips.protocol.tornado',
               'cantrips.protocol.traits',
+              'cantrips.protocol.traits.decorators',
+              'cantrips.protocol.traits.user',
               'cantrips.protocol.twisted',
               'cantrips.task'],
     url='https://github.com/luismasuelli/python-cantrips',
