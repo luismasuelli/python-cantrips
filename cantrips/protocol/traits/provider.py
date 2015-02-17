@@ -17,6 +17,14 @@ class IProtocolProvider(object):
 
         raise NotImplementedError
 
+    @classmethod
+    def specification_handlers(cls):
+        """
+        Should return dict {ns.code: handler}
+        """
+
+        raise NotImplemented
+
     @staticmethod
     def specifications(*args):
         """
@@ -24,16 +32,22 @@ class IProtocolProvider(object):
           If one spec declares a namespace, and another spec declares the same
           namespace, the content of the namespace will be updated with such new
           content.
-
-        e.g. assume provider A has {'a': {'a1': 1, 'a3': 3}, 'c': {'c1': 1}} and
-          B has {'a': {'a1': 1.5, 'a2': 2}, 'b': {'b1': 1}}. The resulting spec
-          would be:
-
-          {'a': {'a1': 1.5, 'a2': 2, 'a3': 3}, 'b': {'b1': 1}, 'c': {'c1': 1}}
         """
 
         total_specs = {}
         for provider in args:
             for key, value in items(provider.specification()):
+                total_specs.setdefault(key, {}).update(value)
+        return total_specs
+
+    @staticmethod
+    def specifications_handlers(*args):
+        """
+        Should return a specification handlers iterating many given providers.
+        """
+
+        total_specs = {}
+        for provider in args:
+            for key, value in items(provider.specification_handlers()):
                 total_specs.setdefault(key, {}).update(value)
         return total_specs
