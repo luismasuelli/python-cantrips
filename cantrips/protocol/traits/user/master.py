@@ -136,7 +136,7 @@ class UserMasterBroadcast(UserBroadcast, IProtocolProvider, IAuthHandle):
         """
         Instantiates a master broadcast by creating a slaves  list, and some list handlers.
         """
-        super(UserMasterBroadcast, self).__init__(key, slaves=List(slave_class), *args, **kwargs)
+        super(UserMasterBroadcast, self).__init__(key, master=self, slaves=List(slave_class), *args, **kwargs)
 
         def unregister_slave(list, instance, by_val):
             for ukey, user in instance.users():
