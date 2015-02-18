@@ -42,7 +42,7 @@ class ForwardNone(object):
         return self.Dummy()
 
 
-class ForwardSlave(object):
+class ForwardBroadcast(object):
     """
     Takes a slave and a socket. Calls are forwarded to the slave, proxy-passing
       the socket to the call. This means:
@@ -353,9 +353,10 @@ class UserMasterBroadcast(UserBroadcast, IProtocolProvider, IAuthHandle):
     # Funciones auxiliares de comando (no lo resuelven por si mismas)
     #################################################################
 
-    def forward(self, socket, channel):
+    def forward(self, socket, channel=None):
         """
         Gets a forward object. Passed commands to such objects get the slave, and socket, proxied.
+        If slave is not specified, the forward is for the current (master) object.
 
         This means:
            master.forward('my-room', socket).my_command(a, b, c=c)
@@ -368,8 +369,10 @@ class UserMasterBroadcast(UserBroadcast, IProtocolProvider, IAuthHandle):
           You should watch out on not retrieving attributes other than to be called, since attributes
           are dummy functions or false values.
         """
-        if channel in self.slaves:
-            return ForwardSlave(self.slaves[channel], socket)
+        if channel is None:
+            return ForwardBroadcast(self, socket)
+        elif channel in self.slaves:
+            return ForwardBroadcast(self.slaves[channel], socket)
         else:
             self._forward_invalid(socket, channel)
             return ForwardNone()
