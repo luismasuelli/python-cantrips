@@ -20,7 +20,8 @@ class IProtocolProvider(object):
     @classmethod
     def specification_handlers(cls):
         """
-        Should return dict {ns.code: handler}
+        Should return dict {ns => {code: handler}}. Only has sense for (server|both)-direction
+          codes.
         """
 
         raise NotImplemented
