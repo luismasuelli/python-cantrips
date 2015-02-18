@@ -59,4 +59,4 @@ class IProtocolProvider(object):
         Determines, based on whether the trait is intended or not for slave/master, the
           broadcast to use: the master itself or a slave given by a key.
         """
-        return master.forward(socket, message.kwargs.get(getattr(cls, 'SLAVE_KEY_ATTR', 'slave'), None) if getattr(cls, 'MASTER_TRAIT', False) else None)
+        return master.forward(socket, message.kwargs.get(getattr(cls, 'SLAVE_KEY_ATTR', 'slave'), None) if not getattr(cls, 'MASTER_TRAIT', False) else None)
