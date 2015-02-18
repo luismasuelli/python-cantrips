@@ -287,8 +287,8 @@ class MessageProcessor(object):
           connection is closed.
         """
         ns, code = message.code.rsplit(None, 1)
-        h = self._handlers().get(ns, {}).get(code, lambda message: None)
-        return h(message)
+        h = self._handlers().get(ns, {}).get(code, lambda socket, message: None)
+        return h(self, message)
 
     def invalid_message(self, error):
         """
