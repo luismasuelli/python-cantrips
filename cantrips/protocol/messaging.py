@@ -283,7 +283,8 @@ class MessageProcessor(object):
     def _dispatch_message(self, message):
         """
         Processes a message by running a specific behavior. If
-          this function returns False, the connection is closed.
+          this function returns a True-evaluable value, the
+          connection is closed.
         """
         ns, code = message.code.rsplit(None, 1)
         h = self._handlers().get(ns, {}).get(code, lambda message: None)
@@ -293,7 +294,7 @@ class MessageProcessor(object):
         """
         Processes an exception by running certain behavior. It is
           the same as processing a normal message: If this function
-          returns False, the connection is closed.
+          returns a True-evaluable value, the connection is closed.
         """
 
         return True
