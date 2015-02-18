@@ -35,11 +35,19 @@ class WhisperBroadcast(IBroadcast, PermCheck, IProtocolProvider, IAuthCheck):
             }
         }
 
-    whisper = IAuthCheck.login_required(AccessControlledAction(
-        lambda obj, socket, target, message: obj._whisper_command_is_allowed(socket, target, message),
+    @classmethod
+    def specification_handlers(cls, master_instance):
+        return {
+            cls.WHISPER_NS: {
+                cls.WHISPER_CODE_WHISPER: lambda socket, message: cls.route(master_instance, message, socket).command_whisper(message.target, message.message),
+            }
+        }
+
+    command_whisper = IAuthCheck.login_required(AccessControlledAction(
+        lambda obj, socket, target, message: obj._command_is_allowed_whisper(socket, target, message),
         lambda obj, result: obj._accepts(result),
-        lambda obj, result, socket, target, message: obj._whisper_command_on_accepted(result, socket, target, message),
-        lambda obj, result, socket, target, message: obj._whisper_command_on_rejected(result, socket, target, message),
+        lambda obj, result, socket, target, message: obj._command_accepted_whisper(result, socket, target, message),
+        lambda obj, result, socket, target, message: obj._command_rejected_whisper(result, socket, target, message),
     ).as_method("""
     A user (given by key or instance) can send a message to another user in the broadcast.
     This is restricted to users already subscribed to the broadcast (both must belong).
@@ -50,7 +58,7 @@ class WhisperBroadcast(IBroadcast, PermCheck, IProtocolProvider, IAuthCheck):
       serialization mechanism.
     """))
 
-    def _whisper_command_is_allowed(self, socket, target, message):
+    def _command_is_allowed_whisper(self, socket, target, message):
         """
         Determines whether the user is allowed to whisper a message to another user.
 
@@ -62,14 +70,14 @@ class WhisperBroadcast(IBroadcast, PermCheck, IProtocolProvider, IAuthCheck):
             return self._result_deny(self.WHISPER_RESULT_DENY_TARGET_ITS_YOU)
         return self._result_allow(self.WHISPER_RESULT_ALLOW)
 
-    def _whisper_command_on_accepted(self, result, socket, target, message):
+    def _command_accepted_whisper(self, result, socket, target, message):
         """
         User message was accepted. Notify the user AND broadcast the message to other users.
         """
         socket.send_message(self.WHISPER_RESPONSE_NS, self.WHISPER_RESPONSE_CODE_RESPONSE, result=result, target=target, message=message)
         self.notify(target, (self.WHISPER_NS, self.WHISPER_CODE_WHISPERED), sender=self.auth_get(socket).key, message=message)
 
-    def _whisper_command_on_rejected(self, result, socket, target, message):
+    def _command_rejected_whisper(self, result, socket, target, message):
         """
         User message was rejected.
         """
