@@ -13,6 +13,7 @@ class WhisperBroadcast(IBroadcast, PermCheck, IProtocolProvider, IAuthCheck):
     """
 
     WHISPER_NS = 'whisper'
+    WHISPER_CODE_WHISPER = 'whisper'
     WHISPER_CODE_WHISPERED = 'whispered'
 
     WHISPER_RESPONSE_NS = 'notify'
@@ -26,6 +27,7 @@ class WhisperBroadcast(IBroadcast, PermCheck, IProtocolProvider, IAuthCheck):
     def specification(cls):
         return {
             cls.WHISPER_NS: {
+                cls.WHISPER_CODE_WHISPER: 'server',
                 cls.WHISPER_CODE_WHISPERED: 'client'
             },
             cls.WHISPER_RESPONSE_NS: {

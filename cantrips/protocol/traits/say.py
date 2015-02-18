@@ -13,6 +13,7 @@ class SayBroadcast(IBroadcast, PermCheck, IProtocolProvider, IAuthCheck, IInChec
     """
 
     SAY_NS = 'say'
+    SAY_CODE_SAY = 'say'
     SAY_CODE_SAID = 'said'
 
     SAY_RESPONSE_NS = 'notify'
@@ -24,6 +25,7 @@ class SayBroadcast(IBroadcast, PermCheck, IProtocolProvider, IAuthCheck, IInChec
     def specification(cls):
         return {
             cls.SAY_NS: {
+                cls.SAY_CODE_SAY: 'server',
                 cls.SAY_CODE_SAID: 'client'
             },
             cls.SAY_RESPONSE_NS: {
