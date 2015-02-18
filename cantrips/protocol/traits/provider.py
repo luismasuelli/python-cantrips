@@ -18,10 +18,10 @@ class IProtocolProvider(object):
         raise NotImplementedError
 
     @classmethod
-    def specification_handlers(cls):
+    def specification_handlers(cls, master_instance):
         """
         Should return dict {ns => {code: handler}}. Only has sense for (server|both)-direction
-          codes.
+          codes. It takes a master broadcast instance to get the handlers from.
         """
 
         raise NotImplemented
@@ -42,13 +42,13 @@ class IProtocolProvider(object):
         return total_specs
 
     @staticmethod
-    def specifications_handlers(*args):
+    def specifications_handlers(master_instance, *args):
         """
         Should return a specification handlers iterating many given providers.
         """
 
         total_specs = {}
         for provider in args:
-            for key, value in items(provider.specification_handlers()):
+            for key, value in items(provider.specification_handlers(master_instance)):
                 total_specs.setdefault(key, {}).update(value)
         return total_specs
