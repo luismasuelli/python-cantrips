@@ -61,6 +61,15 @@ class UserSlaveBroadcast(UserBroadcast, IAuthCheck, IInCheck, IProtocolProvider)
             }
         }
 
+    @classmethod
+    def specification_handlers(cls, master_instance):
+        return {
+            cls.CHANNEL_NS: {
+                cls.CHANNEL_CODE_JOIN: lambda socket, message: master_instance.forward(socket, message.kwargs.get('channel')).command_join(),
+                cls.CHANNEL_CODE_PART: lambda socket, message: master_instance.forward(socket, message.kwargs.get('channel')).command_join(),
+            },
+        }
+
     def __init__(self, key, master, *args, **kwargs):
         """
         Instantiates a slave broadcast by specifying a master, and register/unregister list handlers.
