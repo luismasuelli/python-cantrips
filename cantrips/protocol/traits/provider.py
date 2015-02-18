@@ -52,3 +52,14 @@ class IProtocolProvider(object):
             for key, value in items(provider.specification_handlers(master_instance)):
                 total_specs.setdefault(key, {}).update(value)
         return total_specs
+
+    @classmethod
+    def route(cls, master, message, socket):
+        """
+        Determines, based on whether the trait is intended or not for slave/master, the
+          broadcast to use: the master itself or a slave given by a key.
+        """
+        if getattr(cls, 'MASTER_TRAIT', False):
+            return master.forward(socket)
+        else:
+            return master.forward(socket, message.kwargs.get(getattr(cls, 'SLAVE_KEY_ATTR', 'slave'), None))
