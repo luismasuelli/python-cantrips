@@ -119,6 +119,19 @@ class UserMasterBroadcast(UserBroadcast, IProtocolProvider, IAuthHandle):
             }
         }
 
+    @classmethod
+    def specification_handlers(cls, master_instance):
+        return {
+            cls.AUTHENTICATE_NS: {
+                cls.AUTHENTICATE_CODE_LOGIN: lambda socket, message: master_instance.command_login(socket, *message.args, **message.kwargs),
+                cls.AUTHENTICATE_CODE_LOGOUT: lambda socket, message: master_instance.command_logout(socket, *message.args, **message.kwargs),
+            },
+            cls.CHANNEL_NS: {
+                cls.CHANNEL_CODE_CREATE: lambda socket, message: master_instance.command_create_slave(socket, message.args[0], *message.args[1:], **message.kwargs),
+                cls.CHANNEL_CODE_CLOSE: lambda socket, message: master_instance.command_close_slave(socket, message.args[0], *message.args[1:], **message.kwargs),
+            },
+        }
+
     def __init__(self, key, slave_class, *args, **kwargs):
         """
         Instantiates a master broadcast by creating a slaves  list, and some list handlers.
