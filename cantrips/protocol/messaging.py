@@ -285,8 +285,8 @@ class MessageProcessor(object):
         Processes a message by running a specific behavior. If
           this function returns False, the connection is closed.
         """
-
-        h = self._handlers().get(message.code, lambda message: None)
+        ns, code = message.code.rsplit(None, 1)
+        h = self._handlers().get(ns, {}).get(code, lambda message: None)
         return h(message)
 
     def invalid_message(self, error):
