@@ -99,6 +99,8 @@ class UserMasterBroadcast(UserBroadcast, IProtocolProvider, IAuthHandle):
     CHANNEL_RESULT_DENY_UNEXISTENT = 'unexistent-channel'
     CHANNEL_RESULT_DENY_EXISTENT = 'already-existent'
 
+    MASTER_TRAIT = True
+
     @classmethod
     def specification(cls):
         return {
@@ -123,12 +125,12 @@ class UserMasterBroadcast(UserBroadcast, IProtocolProvider, IAuthHandle):
     def specification_handlers(cls, master_instance):
         return {
             cls.AUTHENTICATE_NS: {
-                cls.AUTHENTICATE_CODE_LOGIN: lambda socket, message: master_instance.command_login(socket, *message.args, **message.kwargs),
-                cls.AUTHENTICATE_CODE_LOGOUT: lambda socket, message: master_instance.command_logout(socket, *message.args, **message.kwargs),
+                cls.AUTHENTICATE_CODE_LOGIN: lambda socket, message: cls.route(master_instance, message, socket).command_login(*message.args, **message.kwargs),
+                cls.AUTHENTICATE_CODE_LOGOUT: lambda socket, message: cls.route(master_instance, message, socket).command_logout(*message.args, **message.kwargs),
             },
             cls.CHANNEL_NS: {
-                cls.CHANNEL_CODE_CREATE: lambda socket, message: master_instance.command_create_slave(socket, message.args[0], *message.args[1:], **message.kwargs),
-                cls.CHANNEL_CODE_CLOSE: lambda socket, message: master_instance.command_close_slave(socket, message.args[0], *message.args[1:], **message.kwargs),
+                cls.CHANNEL_CODE_CREATE: lambda socket, message: cls.route(master_instance, message, socket).command_create_slave(message.args[0], *message.args[1:], **message.kwargs),
+                cls.CHANNEL_CODE_CLOSE: lambda socket, message: cls.route(master_instance, message, socket).command_close_slave(message.args[0], *message.args[1:], **message.kwargs),
             },
         }
 

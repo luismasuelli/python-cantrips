@@ -65,8 +65,8 @@ class UserSlaveBroadcast(UserBroadcast, IAuthCheck, IInCheck, IProtocolProvider)
     def specification_handlers(cls, master_instance):
         return {
             cls.CHANNEL_NS: {
-                cls.CHANNEL_CODE_JOIN: lambda socket, message: master_instance.forward(socket, message.kwargs.get('channel')).command_join(),
-                cls.CHANNEL_CODE_PART: lambda socket, message: master_instance.forward(socket, message.kwargs.get('channel')).command_join(),
+                cls.CHANNEL_CODE_JOIN: lambda socket, message: cls.route(master_instance, message, socket).command_join(),
+                cls.CHANNEL_CODE_PART: lambda socket, message: cls.route(master_instance, message, socket).command_join(),
             },
         }
 
