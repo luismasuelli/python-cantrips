@@ -1,3 +1,11 @@
+import operator
+
+try:
+    from itertools import izip
+except ImportError:
+    izip = zip
+
+
 def items(iterable):
     """
     Iterates over the items of a sequence. If the sequence supports the
@@ -23,3 +31,34 @@ def iterable(value):
         return iter(value)
     except TypeError:
         return value,
+
+
+try:
+    from itertools import accumulate
+except ImportError:
+    def accumulate(p, func=operator.add):
+        """
+        Python3's itertools accumulate being ported to PY2
+        :param p:
+        :param func:
+        :return:
+        """
+        iterator = iter(p)
+        current = next(iterator)
+        for k in iterator:
+            yield current
+            current = func(current, k)
+        yield current
+
+
+def labeled_accumulate(sequence, keygetter=operator.itemgetter(0), valuegetter=operator.itemgetter(1), accumulator=operator.add):
+    """
+    Accumulates input elements according to accumulate(), but keeping certain data (per element, from the original
+      sequence/iterable) in the target elements, like behaving as keys or legends.
+    :param sequence:
+    :param keygetter:
+    :param valuegetter:
+    :return:
+    """
+    return izip((keygetter(item) for item in sequence),
+                accumulate((valuegetter(item) for item in sequence), accumulator))
