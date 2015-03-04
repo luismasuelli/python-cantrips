@@ -2,7 +2,8 @@ from distutils.core import setup
 
 setup(
     name='python-cantrips',
-    version='0.6.2',
+    version='0.6.3',
+    namespace_packages=['cantrips'],
     packages=['cantrips',
               'cantrips.watch',
               'cantrips.types',
