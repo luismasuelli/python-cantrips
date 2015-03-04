@@ -1,5 +1,18 @@
+import datetime
 from cantrips.iteration import labeled_accumulate
 import random
+from hashlib import sha1, sha224, sha256, sha384, sha512
+from base64 import b64encode
+
+
+_HASHES = {
+    'sha1': sha1,
+    'sha224': sha224,
+    'sha256': sha256,
+    'sha384': sha384,
+    'sha512': sha512,
+}
+
 
 random.seed()
 
@@ -23,3 +36,16 @@ def weighted_random(sequence):
             return k
     #punto inalcanzable a priori
     return None
+
+
+def nonce(algorithm='sha1', to_hex=True):
+    """
+    Generates a nonce (a pseudo-random token). It is seeded with the current date/time.
+    :param algorithm: a string being any of the SHA hash algorithms.
+    :param to_hex: a boolean describing whether we want a base64 digest or a hexadecimal digest
+    :return:
+    """
+    if algorithm not in _HASHES:
+        return None
+    result = _HASHES['sha1'](datetime.datetime.now().isoformat())
+    return result.hexdigest() if to_hex else b64encode(result.digest())
