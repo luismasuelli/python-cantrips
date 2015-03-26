@@ -1,20 +1,10 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(
     name='python-cantrips',
-    version='0.6.4',
+    version='0.6.5',
     namespace_packages=['cantrips'],
-    packages=['cantrips',
-              'cantrips.watch',
-              'cantrips.types',
-              'cantrips.patterns',
-              'cantrips.protocol',
-              'cantrips.protocol.tornado',
-              'cantrips.protocol.traits',
-              'cantrips.protocol.traits.decorators',
-              'cantrips.protocol.traits.user',
-              'cantrips.protocol.twisted',
-              'cantrips.task'],
+    packages=find_packages(),
     url='https://github.com/luismasuelli/python-cantrips',
     license='LGPL',
     author='Luis y Anita',
