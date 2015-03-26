@@ -64,7 +64,5 @@ def customizable(subdecorator, **defaults):
         else:
             # case 2 - the returned function is passed more options and so
             # will return the decorator.
-            _opts = defaults.copy()
-            _opts.update(options)
-            return lambda f: subdecorator(f, **_opts)
+            return lambda f: subdecorator(f, **dict(defaults, **options))
     return _decorator
