@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='python-cantrips',
-    version='0.6.5',
+    version='0.6.6',
     namespace_packages=['cantrips'],
     packages=find_packages(),
     url='https://github.com/luismasuelli/python-cantrips',
