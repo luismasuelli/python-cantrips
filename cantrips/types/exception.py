@@ -20,12 +20,12 @@ def factory(codes, base=_Exception):
     class Error(base):
         pass
 
+    if isinstance(codes, (list, set, tuple, frozenset)):
+        codes = {e: e for e in codes}
+
     if not isinstance(codes, dict):
         raise FactoryException("Factory codes must be a dict str -> object",
                                FactoryException.INVALID_CODES_LIST, intended_codes=codes)
-
-    if not isinstance(codes, dict):
-        codes = {v: v for v in codes}
 
     for code, value in codes.items():
         try:

@@ -1,7 +1,6 @@
 class TrackableRecord(object):
     """
-    Can hold a set of changeable attributes. Attributes not
-      initialized beforehand are NOT setable.
+    Can hold a set of changeable attributes. Attributes not initialized beforehand are NOT settable.
     Can also track the changes of the attributes.
     """
 
