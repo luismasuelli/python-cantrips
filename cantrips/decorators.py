@@ -1,4 +1,5 @@
 from functools import wraps
+from future.utils import PY3
 
 
 def customizable(subdecorator, **defaults):
@@ -66,3 +67,21 @@ def customizable(subdecorator, **defaults):
             # will return the decorator.
             return lambda f: subdecorator(f, **dict(defaults, **options))
     return _decorator
+
+try:
+    from contextlib import ContextDecorator
+except ImportError:
+    class ContextDecorator(object):
+        """
+        A base class that enables a context manager to also be used as a decorator.
+        """
+    def __call__(self, func):
+        assigned = ('__module__', '__name__', '__doc__')
+        if not PY3:
+            assigned = tuple(foo for foo in ('__module__', '__name__', '__doc__') if hasattr(func, foo))
+
+        @wraps(func, assigned=assigned)
+        def inner(*args, **kwargs):
+            with self:
+                return func(*args, **kwargs)
+        return inner
