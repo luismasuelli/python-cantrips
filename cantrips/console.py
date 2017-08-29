@@ -1,4 +1,5 @@
 from future.builtins.misc import input as line_input
+from __future__ import print_function
 
 
 class _Getch:
@@ -53,7 +54,7 @@ def input(message, until, single_char=False, transform=lambda a: a):
         input can be done using text input or character input.
     """
     def _getch(message):
-        print message,
+        print(message, end='')
         return getch()
 
     while True:
@@ -69,5 +70,5 @@ def input_option(message, options="yn", error_message=None):
     """
     def _valid(character):
         if character not in options:
-            print error_message % character
+            print(error_message % character)
     return input("%s [%s]" % (message, options), _valid, True, lambda a: a.lower())
