@@ -1,5 +1,5 @@
-from future.builtins.misc import input as line_input
 from __future__ import print_function
+from future.builtins.misc import input as line_input
 
 
 class _Getch:
