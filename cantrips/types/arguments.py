@@ -1,8 +1,6 @@
-from future.utils import python_2_unicode_compatible
 from .frozen import dict
 
 
-@python_2_unicode_compatible
 class Arguments(object):
     """
     Takes any set of arguments into an object.
@@ -21,8 +19,8 @@ class Arguments(object):
             o.kwargs['args']
             o.kwargs['kwargs']
         """
-        super(Arguments, self).__setattr__('_Arguments__args', args)
-        super(Arguments, self).__setattr__('_Arguments__kwargs', dict(**kwargs))
+        super().__setattr__('_Arguments__args', args)
+        super().__setattr__('_Arguments__kwargs', kwargs)
 
     def __len__(self):
         """

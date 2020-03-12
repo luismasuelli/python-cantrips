@@ -30,7 +30,7 @@ class Eventful(object):
             Altering the handlers will not have effect until
                 the current call to this method ends.
             """
-            for key, handler in self.__handlers.copy().iteritems():
+            for key, handler in self.__handlers.copy().items():
                 handler(*args, **kwargs)
 
         def register(self, key, handler):

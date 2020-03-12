@@ -14,7 +14,8 @@ def factory(codes, base=_Exception):
     """
 
     if not issubclass(base, _Exception):
-        raise FactoryException("Invalid class passed as parent: Must be a subclass of an Exception class created with this function",
+        raise FactoryException("Invalid class passed as parent: Must be a subclass of an Exception "
+                               "class created with this function",
                                FactoryException.INVALID_EXCEPTION_CLASS, intended_parent=base)
 
     class Error(base):

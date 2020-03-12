@@ -20,7 +20,7 @@ def is_method(method, flags=METHOD_ALL):
     :param flags:
     :return:
     """
-    if isinstance(method, types.UnboundMethodType):
+    if isinstance(method, types.MethodType):
         if flags & METHOD_CLASS and issubclass(method.im_class, type):
             return True
         if flags & METHOD_INSTANCE and not issubclass(method.im_class, type):

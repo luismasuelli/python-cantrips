@@ -1,5 +1,4 @@
 from functools import wraps
-from future.utils import PY3
 
 
 def customizable(subdecorator, **defaults):
@@ -77,8 +76,6 @@ except ImportError:
         """
     def __call__(self, func):
         assigned = ('__module__', '__name__', '__doc__')
-        if not PY3:
-            assigned = tuple(foo for foo in ('__module__', '__name__', '__doc__') if hasattr(func, foo))
 
         @wraps(func, assigned=assigned)
         def inner(*args, **kwargs):
