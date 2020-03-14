@@ -9,5 +9,5 @@ setup(
     author='Luis y Anita',
     author_email='luismasuelli@hotmail.com',
     description='Python library with quick utilities to make use of in a wide variety of situations',
-    python_requires='>=3'
+    python_requires='>=3.6'
 )
